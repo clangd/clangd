@@ -86,7 +86,7 @@ jobs:
       if: matrix.config.name == 'windows'
       shell: powershell
       run: |
-        cmd /c "`"${{ matrix.config.vcvars }})`">NUL && set" | Foreach-Object {
+        cmd /c "`"${{ matrix.config.vcvars }}`">NUL && set" | Foreach-Object {
           $name, $value = $_ -split '=', 2
           if ($value) { echo "::set-env name=$($name)::$($value)" }
         }
