@@ -1,0 +1,50 @@
+# Workflow to create an auto-buildable release periodically.
+#
+# Releases created with automation credentials don't trigger workflows.
+# Therefore a token `secrets.RELEASE_TOKEN` must exist with public_repo scope.
+name: Periodic release
+on:
+  # Run weekly on sunday at 21:37 UTC (arbitrary)
+  schedule:
+  - cron: '37 21 * * SUN'
+  # Allow triggering manually:
+  # curl -XPOST -d '{"event_type":"periodic"}' \
+  #  "-HAuthorization: Bearer <token>" \
+  #   https://api.github.com/repos/clangd-build/empty/dispatches
+  repository_dispatch: { types: periodic }
+jobs:
+  # Choose the commit to build a release from.
+  #
+  # We want to avoid unbuildable revisions: choose the last green from CI.
+  # FIXME: the criteria should be some consistent set of buildbots passing.
+  pick:
+    name: Create draft release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Clone scripts
+      uses: actions/checkout@v2
+    - name: Pick last successful commit
+      id: pick
+      uses: ./.github/actions/pick
+      with:
+        repo: llvm/llvm-project
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Compute release info
+      run: |
+        echo ::set-env name=RELEASE_COMMIT_SHORT::$(printf "%.12s" ${{ steps.pick.outputs.sha }})
+        echo ::set-env name=RELEASE_DATE::$(date -u +%Y%m%d)
+    - name: Create release
+      uses: actions/create-release@master
+      id: release
+      env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
+      with:
+        tag_name: snapshot_${{ env.RELEASE_DATE }}
+        release_name: ${{ env.RELEASE_DATE }} @${{ env.RELEASE_COMMIT_SHORT }}
+        body: |
+          Unstable snapshot of clangd on ${{ env.RELEASE_DATE }}.
+
+          Built from llvm/llvm-project@${{ steps.pick.outputs.sha }}.
+        prerelease: true
+        # It would be nice to use draft releases...
+        draft: false
+
