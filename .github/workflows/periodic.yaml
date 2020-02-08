@@ -45,6 +45,9 @@ jobs:
 
           Built from llvm/llvm-project@${{ steps.pick.outputs.sha }}.
         prerelease: true
-        # It would be nice to use draft releases...
+        # It would be nice to use draft releases, to hide them from users.
+        # But drafts don't fire events to trigger the autobuild workflow.
+        # Instead, that workflow marks the release as draft until it's built.
+        # As a result, the empty release will be briefly visible to users.
         draft: false
 
