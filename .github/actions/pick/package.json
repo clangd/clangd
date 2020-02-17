@@ -1,0 +1,14 @@
+{
+  "name": "pick",
+  "version": "1.0.0",
+  "description": "Pick the last successful commit from a github repo",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "sam.mccall@gmail.com",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@actions/core": "^1.2.2",
+    "last-successful-gh-commit": "^1.0.1"
+  }
+}

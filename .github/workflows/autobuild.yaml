@@ -1,0 +1,153 @@
+# Workflow to build binaries for a release.
+# Triggered by release creation, which should include `llvm-project@<full-sha>`.
+#
+# Because the build takes more than an hour, our GITHUB_TOKEN credentials may
+# expire. A token `secrets.RELEASE_TOKEN` must exist with public_repo scope.
+name: Build release binaries
+on:
+  release:
+    types: created
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Find LLVM commit
+      run: |
+        grep -m 1 -o "llvm-project@[[:xdigit:]]\{40,\}" << EOF | cut -f 2 -d@ > commit
+        ${{ github.event.release.body }}
+        EOF
+    - name: Mark as draft
+      run: >
+        curl --fail --show-error -XPATCH
+        "-HAuthorization: Bearer ${{ secrets.RELEASE_TOKEN }}"
+        "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"
+        "-d" '{"draft": true}'
+    - name: Persist release info
+      uses: actions/upload-artifact@v1
+      with:
+        name: release
+        path: commit
+  # Build clangd using CMake/Ninja.
+  #
+  # This step is a template that runs on each OS, build config varies slightly.
+  # Uploading releases needs a per-job token that expires after an hour.
+  build:
+    name: Build ${{ matrix.config.name }}
+    needs: prepare
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - name: windows
+          os: windows-latest
+          preinstall: choco install ninja
+          vcvars: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat
+          # FIXME: remove ALLOW_OLD_TOOLCHAIN once VS 16.5 is available.
+          cmake: >
+            "-DCMAKE_C_COMPILER=cl"
+            "-DCMAKE_CXX_COMPILER=cl"
+            "-DCMAKE_CXX_FLAGS_RELEASE=/O2 /DNDEBUG"
+            "-DCMAKE_C_FLAGS_RELEASE=/O2 /DNDEBUG"
+            "-DLLVM_ENABLE_ZLIB=OFF"
+            "-DLLVM_USE_CRT_RELEASE=MT"
+            "-DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON"
+        - name: mac
+          os: macos-latest
+          preinstall: brew install ninja zlib p7zip
+          cmake: >
+            "-DCMAKE_C_COMPILER=clang"
+            "-DCMAKE_CXX_COMPILER=clang++"
+            "-DCMAKE_C_FLAGS_RELEASE=-O3 -gline-tables-only -DNDEBUG"
+            "-DCMAKE_CXX_FLAGS_RELEASE=-O3 -gline-tables-only -DNDEBUG"
+            "-DLLVM_ENABLE_ZLIB=FORCE_ON"
+        - name: linux
+          os: ubuntu-latest
+          preinstall: sudo apt-get install ninja-build libz-dev
+          cmake: >
+            "-DCMAKE_C_COMPILER=clang"
+            "-DCMAKE_CXX_COMPILER=clang++"
+            "-DCMAKE_CXX_FLAGS_RELEASE=-O3 -gline-tables-only -DNDEBUG"
+            "-DCMAKE_C_FLAGS_RELEASE=-O3 -gline-tables-only -DNDEBUG"
+            "-DCMAKE_EXE_LINKER_FLAGS_RELEASE=-static-libgcc -Wl,--compress-debug-sections=zlib"
+            "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
+            "-DLLVM_ENABLE_ZLIB=FORCE_ON"
+            "-DZLIB_LIBRARY=/usr/lib/x86_64-linux-gnu/libz.a"
+    steps:
+    - name: Clone scripts
+      uses: actions/checkout@v2
+      with: { ref: master }
+    - name: Install tools
+      run: ${{ matrix.config.preinstall }}
+    # Visual Studio tools require a bunch of environment variables to be set.
+    # Run vcvars64.bat and re-export the current environment to the workflow.
+    # (It'd be nice to only export the variables that *changed*, oh well).
+    - name: Visual Studio environment
+      if: matrix.config.name == 'windows'
+      shell: powershell
+      run: |
+        cmd /c "`"${{ matrix.config.vcvars }}`">NUL && set" | Foreach-Object {
+          $name, $value = $_ -split '=', 2
+          if ($value) { echo "::set-env name=$($name)::$($value)" }
+        }
+    - name: Fetch target commit
+      uses: actions/download-artifact@v1
+      with: { name: release }
+    - name: Set target commit
+      run: |
+        echo ::set-env name=LLVM_COMMIT::$(cat release/commit)
+        echo ::set-env name=CLANGD_DIR::clangd_${{ github.event.release.tag_name }}
+      shell: bash
+    - name: Clone LLVM
+      uses: actions/checkout@v2
+      with:
+        repository: llvm/llvm-project
+        path: llvm-project
+        ref: ${{ env.LLVM_COMMIT }}
+    - name: CMake
+      run: >
+        mkdir ${{ env.CLANGD_DIR }}
+
+        cp llvm-project/llvm/LICENSE.TXT ${{ env.CLANGD_DIR }}
+
+        cmake -G Ninja -S llvm-project/llvm -B ${{ env.CLANGD_DIR }}
+        "-DLLVM_ENABLE_PROJECTS=clang;clang-tools-extra"
+        "-DLLVM_ENABLE_ASSERTIONS=OFF"
+        "-DLLVM_ENABLE_BACKTRACES=ON"
+        "-DLLVM_ENABLE_TERMINFO=OFF"
+        "-DCMAKE_BUILD_TYPE=Release"
+        "-DCLANG_PLUGIN_SUPPORT=OFF"
+        "-DLLVM_ENABLE_PLUGINS=OFF"
+        ${{ matrix.config.cmake }}
+    - name: Ninja
+      run: ninja -C ${{ env.CLANGD_DIR }} clangd
+    - name: Archive
+      run: >
+        7z a clangd.zip
+        ${{ env.CLANGD_DIR }}/LICENSE.TXT
+        ${{ env.CLANGD_DIR }}/bin/clangd*
+        ${{ env.CLANGD_DIR }}/lib/clang
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: ${{ matrix.config.name }}
+        path: clangd.zip
+    - name: Upload asset
+      uses: actions/upload-release-asset@v1.0.1
+      env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: clangd-${{ matrix.config.name }}-${{ github.event.release.tag_name }}.zip
+        asset_path: clangd.zip
+        asset_content_type: application/zip
+  # Create the release, and upload the artifacts to it.
+  finalize:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Publish release
+      run: >
+        curl -XPATCH
+        "-HAuthorization: Bearer ${{ secrets.RELEASE_TOKEN }}"
+        "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"
+        "-d" '{"draft": false}'
