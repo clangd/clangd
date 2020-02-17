@@ -12,4 +12,4 @@ outputs:
     description: 'The SHA1 of the picked commit'
 runs:
   using: 'node12'
-  main: 'dist/index.js'
+  main: 'index.js'

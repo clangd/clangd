@@ -137,7 +137,7 @@ jobs:
       env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_name: clangd-${{ matrix.config.name }}.zip
+        asset_name: clangd-${{ matrix.config.name }}-${{ github.event.release.tag_name }}.zip
         asset_path: clangd.zip
         asset_content_type: application/zip
   # Create the release, and upload the artifacts to it.
