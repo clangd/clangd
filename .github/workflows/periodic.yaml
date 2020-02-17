@@ -10,7 +10,7 @@ on:
   # Allow triggering manually:
   # curl -XPOST -d '{"event_type":"periodic"}' \
   #  "-HAuthorization: Bearer <token>" \
-  #   https://api.github.com/repos/clangd-build/empty/dispatches
+  #   https://api.github.com/repos/clangd/clangd/dispatches
   repository_dispatch: { types: periodic }
 jobs:
   # Choose the commit to build a release from.
