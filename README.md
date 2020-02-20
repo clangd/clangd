@@ -8,3 +8,13 @@ This is not its documentation.
 - the **source code** is hosted at http://llvm.org/, and mirrored at
   https://github.com/llvm/llvm-project/tree/master/clang-tools-extra/clangd.
 - the **website source code** is at https://github.com/clangd/clangd.github.io/
+
+### Communication channels
+
+If you have any questions or feedback, you can reach community and developers
+through one of these channels:
+
+- chat: #clangd room hosted on [LLVM's Discord
+  channel](https://discord.gg/xS7Z362).
+- user questions and feature requests can be asked in Clangd topic on [LLVM
+  Discussion Forums](https://llvm.discourse.group/c/llvm-project/clangd/34)
