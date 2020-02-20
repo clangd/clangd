@@ -14,9 +14,7 @@ This is not its documentation.
 If you have any questions or feedback, you can reach community and developers
 through one of these channels:
 
-- quick chat #clangd room hosted on [LLVM's Discord
+- chat: #clangd room hosted on [LLVM's Discord
   channel](https://discord.gg/xS7Z362).
 - user questions and feature requests can be asked in Clangd topic on [LLVM
   Discussion Forums](https://llvm.discourse.group/c/llvm-project/clangd/34)
-- for more detailed discussions
-  https://lists.llvm.org/cgi-bin/mailman/listinfo/clangd-dev.
