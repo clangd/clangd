@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 Please describe the problem.
-For hints on what information is helpful, see: https://clangd.github.io/troubleshooting.html
+For hints on what information is helpful, see: https://clangd.llvm.org/troubleshooting.html
 
 If you can, provide a minimal chunk of code that shows the problem (either inline, or attach it if larger).
 
