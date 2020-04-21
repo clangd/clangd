@@ -5,6 +5,7 @@ SMALLER="-strip -define png:compression-filter=3"
 PAD_TO="-background none -gravity center -extent"
 LOGO_ONLY="--export-id=CD --export-background-opacity=0"
 CONTRAST="-level 20%,100%,1.4"
+inkscape clangd.svg $LOGO_ONLY --export-plain-svg=logo.svg 
 mogrify $SMALLER card.png
 inkscape clangd.svg --export-png=logo.png -h=1024 $LOGO_ONLY
 mogrify $SMALLER $PAD_TO 1024x1024 logo.png
