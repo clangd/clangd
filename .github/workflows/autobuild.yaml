@@ -121,18 +121,28 @@ jobs:
         ${{ matrix.config.cmake }}
     - name: Ninja
       run: ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer
-    - name: Archive
+    - name: Archive clangd
       run: >
         7z a clangd.zip
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
         ${{ env.CLANGD_DIR }}/bin/clangd*
-        ${{ env.CLANGD_DIR }}/bin/clangd-indexer
+        ${{ env.CLANGD_DIR }}/lib/clang
+    - name: Archive clangd-indexer
+      run: >
+        7z a clangd-indexer.zip
+        ${{ env.CLANGD_DIR }}/LICENSE.TXT
+        ${{ env.CLANGD_DIR }}/bin/clangd-indexer*
         ${{ env.CLANGD_DIR }}/lib/clang
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
         name: ${{ matrix.config.name }}
         path: clangd.zip
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: ${{ matrix.config.name }}
+        path: clangd-indexer.zip
     - name: Upload asset
       uses: actions/upload-release-asset@v1.0.1
       env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
@@ -140,6 +150,14 @@ jobs:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: clangd-${{ matrix.config.name }}-${{ github.event.release.tag_name }}.zip
         asset_path: clangd.zip
+        asset_content_type: application/zip
+    - name: Upload asset
+      uses: actions/upload-release-asset@v1.0.1
+      env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: clangd-indexer-${{ matrix.config.name }}-${{ github.event.release.tag_name }}.zip
+        asset_path: clangd-indexer.zip
         asset_content_type: application/zip
   # Create the release, and upload the artifacts to it.
   finalize:
