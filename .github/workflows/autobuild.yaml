@@ -120,12 +120,13 @@ jobs:
         "-DLLVM_ENABLE_PLUGINS=OFF"
         ${{ matrix.config.cmake }}
     - name: Ninja
-      run: ninja -C ${{ env.CLANGD_DIR }} clangd
+      run: ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer
     - name: Archive
       run: >
         7z a clangd.zip
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
         ${{ env.CLANGD_DIR }}/bin/clangd*
+        ${{ env.CLANGD_DIR }}/bin/clangd-indexer
         ${{ env.CLANGD_DIR }}/lib/clang
     - name: Upload artifact
       uses: actions/upload-artifact@v1
