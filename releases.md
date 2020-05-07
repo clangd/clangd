@@ -8,7 +8,8 @@ is being able to cut releases easily whenever we want.
 The releases are just a zip archive containing the `clangd` binary, and the
 clang builtin headers. They should be runnable immediately after extracting the
 archive. The linux binary has `libstdc++` and other dependencies statically
-linked for maximum portability.
+linked for maximum portability, and requires glibc 2.18 (the first version with
+`thread_local` support).
 
 ## Creating a release manually
 
