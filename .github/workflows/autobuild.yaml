@@ -72,7 +72,9 @@ jobs:
             "-DCMAKE_EXE_LINKER_FLAGS_RELEASE=-static-libgcc -Wl,--compress-debug-sections=zlib"
             "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
-            "-DZLIB_LIBRARY=/usr/lib/x86_64-linux-gnu/libz.a"
+          post_cmake: |
+            # Link zlib statically. LLVM 10 has no option for this!
+            sed -i 's/ -lz / -l:libz.a /' "$CLANGD_DIR/build.ninja"
     steps:
     - name: Clone scripts
       uses: actions/checkout@v2
@@ -119,6 +121,8 @@ jobs:
         "-DCLANG_PLUGIN_SUPPORT=OFF"
         "-DLLVM_ENABLE_PLUGINS=OFF"
         ${{ matrix.config.cmake }}
+
+        ${{ matrix.config.post_cmake }}
     - name: Ninja
       run: ninja -C ${{ env.CLANGD_DIR }} clangd
     - name: Archive
