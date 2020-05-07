@@ -61,7 +61,7 @@ def accept_symbol(sym):
 nm = subprocess.run(
     ["nm", "-uD", "--with-symbol-version", args.binary],
     stdout=subprocess.PIPE,
-    text=True,
+    universal_newlines=True,
 )
 nm.check_returncode()
 status = 0
