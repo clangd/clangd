@@ -43,32 +43,29 @@ jobs:
           os: windows-latest
           preinstall: choco install ninja
           vcvars: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat
+          cflags: /O2 /DNDEBUG
           # FIXME: remove ALLOW_OLD_TOOLCHAIN once VS 16.5 is available.
           cmake: >
             "-DCMAKE_C_COMPILER=cl"
             "-DCMAKE_CXX_COMPILER=cl"
-            "-DCMAKE_CXX_FLAGS_RELEASE=/O2 /DNDEBUG"
-            "-DCMAKE_C_FLAGS_RELEASE=/O2 /DNDEBUG"
             "-DLLVM_ENABLE_ZLIB=OFF"
             "-DLLVM_USE_CRT_RELEASE=MT"
             "-DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON"
         - name: mac
           os: macos-latest
           preinstall: brew install ninja zlib p7zip
+          cflags: -O3 -gline-tables-only -DNDEBUG
           cmake: >
             "-DCMAKE_C_COMPILER=clang"
             "-DCMAKE_CXX_COMPILER=clang++"
-            "-DCMAKE_C_FLAGS_RELEASE=-O3 -gline-tables-only -DNDEBUG"
-            "-DCMAKE_CXX_FLAGS_RELEASE=-O3 -gline-tables-only -DNDEBUG"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
         - name: linux
           os: ubuntu-latest
           preinstall: sudo apt-get install ninja-build libz-dev
+          cflags: -O3 -gline-tables-only -DNDEBUG
           cmake: >
             "-DCMAKE_C_COMPILER=clang"
             "-DCMAKE_CXX_COMPILER=clang++"
-            "-DCMAKE_CXX_FLAGS_RELEASE=-O3 -gline-tables-only -DNDEBUG"
-            "-DCMAKE_C_FLAGS_RELEASE=-O3 -gline-tables-only -DNDEBUG"
             "-DCMAKE_EXE_LINKER_FLAGS_RELEASE=-static-libgcc -Wl,--compress-debug-sections=zlib"
             "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
@@ -117,6 +114,8 @@ jobs:
         "-DCMAKE_BUILD_TYPE=Release"
         "-DCLANG_PLUGIN_SUPPORT=OFF"
         "-DLLVM_ENABLE_PLUGINS=OFF"
+        "-DCMAKE_C_FLAGS_RELEASE=${{ matrix.config.cflags }}"
+        "-DCMAKE_CXX_FLAGS_RELEASE=${{ matrix.config.cflags }}"
         ${{ matrix.config.cmake }}
     # LLVM 10 has no way to statically link zlib via CMake itself, AFAICT...
     - name: Statically link zlib
