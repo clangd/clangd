@@ -145,7 +145,7 @@ jobs:
         asset_content_type: application/zip
     - name: Check binary compatibility
       if: matrix.config.name == 'linux'
-      run: .github/worflows/lib_compat_test.py --lib=GLIBC_2.18
+      run: .github/worflows/lib_compat_test.py "$CLANGD_DIR/bin/clangd" --lib=GLIBC_2.18
   # Create the release, and upload the artifacts to it.
   finalize:
     runs-on: ubuntu-latest
