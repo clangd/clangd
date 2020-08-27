@@ -55,6 +55,7 @@ jobs:
           os: macos-latest
           preinstall: brew install ninja zlib p7zip
           cflags: -O3 -gline-tables-only -DNDEBUG
+          env: MACOSX_DEPLOYMENT_TARGET=10.9
           cmake: >
             "-DCMAKE_C_COMPILER=clang"
             "-DCMAKE_CXX_COMPILER=clang++"
