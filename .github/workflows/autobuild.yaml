@@ -70,6 +70,7 @@ jobs:
             "-DCMAKE_EXE_LINKER_FLAGS_RELEASE=-static-libgcc -Wl,--compress-debug-sections=zlib"
             "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
+            "-DCMAKE_PROJECT_INCLUDE=$GITHUB_WORKSPACE/.github/workflows/linux-static-deps.cmake"
     steps:
     - name: Clone scripts
       uses: actions/checkout@v2
@@ -118,10 +119,6 @@ jobs:
         "-DCMAKE_C_FLAGS_RELEASE=${{ matrix.config.cflags }}"
         "-DCMAKE_CXX_FLAGS_RELEASE=${{ matrix.config.cflags }}"
         ${{ matrix.config.cmake }}
-    # LLVM 10 has no way to statically link zlib via CMake itself, AFAICT...
-    - name: Statically link zlib
-      if: matrix.config.name == 'linux'
-      run: sed -i 's/ -lz / -l:libz.a /' "$CLANGD_DIR/build.ninja"
     - name: Ninja
       run: ninja -C ${{ env.CLANGD_DIR }} clangd
     - name: Archive
