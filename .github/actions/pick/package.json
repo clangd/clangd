@@ -8,7 +8,7 @@
   "author": "sam.mccall@gmail.com",
   "license": "Apache-2.0",
   "dependencies": {
-    "@actions/core": "^1.2.2",
+    "@actions/core": "^1.2.6",
     "last-successful-gh-commit": "^1.0.1"
   }
 }
