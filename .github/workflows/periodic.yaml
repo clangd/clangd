@@ -23,8 +23,6 @@ jobs:
     steps:
     - name: Clone scripts
       uses: actions/checkout@v2
-    - name: Install NPM dependencies
-      run: npm install --prefix .github/actions/pick
     - name: Pick last successful commit
       id: pick
       uses: ./.github/actions/pick
