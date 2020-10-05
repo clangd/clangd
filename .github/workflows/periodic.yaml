@@ -25,7 +25,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Pick last successful commit
       id: pick
-      uses: clangd/actions/.github/actions/pick@3fef15e
+      uses: clangd/actions/.github/actions/pick@v0.1.0
       with:
         repo: llvm/llvm-project
         token: ${{ secrets.GITHUB_TOKEN }}
