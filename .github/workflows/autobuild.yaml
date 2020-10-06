@@ -86,15 +86,15 @@ jobs:
       run: |
         cmd /c "`"${{ matrix.config.vcvars }}`">NUL && set" | Foreach-Object {
           $name, $value = $_ -split '=', 2
-          if ($value) { echo "::set-env name=$($name)::$($value)" }
+          if ($value) { echo "$($name)=$($value)" >> $GITHUB_ENV }
         }
     - name: Fetch target commit
       uses: actions/download-artifact@v1
       with: { name: release }
     - name: Set target commit
       run: |
-        echo ::set-env name=LLVM_COMMIT::$(cat release/commit)
-        echo ::set-env name=CLANGD_DIR::clangd_${{ github.event.release.tag_name }}
+        echo "LLVM_COMMIT=$(cat release/commit)" >> $GITHUB_ENV
+        echo "CLANGD_DIR=clangd_${{ github.event.release.tag_name }}" >> $GITHUB_ENV
       shell: bash
     - name: Clone LLVM
       uses: actions/checkout@v2
