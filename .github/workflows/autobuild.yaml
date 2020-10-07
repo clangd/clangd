@@ -86,7 +86,9 @@ jobs:
       run: |
         cmd /c "`"${{ matrix.config.vcvars }}`">NUL && set" | Foreach-Object {
           $name, $value = $_ -split '=', 2
-          if ($value) { echo "$($name)=$($value)" >> $GITHUB_ENV }
+          if ($value) {
+            echo "$($name)=$($value)" >> $env:GITHUB_ENV
+          }
         }
     - name: Fetch target commit
       uses: actions/download-artifact@v1
