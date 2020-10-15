@@ -130,8 +130,6 @@ jobs:
         ${{ env.CLANGD_DIR }}/bin/clangd
         ${{ env.CLANGD_DIR }}/lib/clang
     - name: Archive indexing-tools
-      # FIXME: For now, indexing tools will be only available on Linux. Other
-      # platforms will be added soon.
       if: matrix.config.name == 'linux'
       run: >
         7z a indexing-tools.zip
@@ -140,13 +138,12 @@ jobs:
     - name: Upload clangd artifact
       uses: actions/upload-artifact@v1
       with:
-        name: ${{ matrix.config.name }}-clangd
+        name: ${{ matrix.config.name }}
         path: clangd.zip
     - name: Upload indexing tools artifact
-      if: matrix.config.name == 'linux'
       uses: actions/upload-artifact@v1
       with:
-        name: ${{ matrix.config.name }}-indexing-tools
+        name: indexing-tools-${{ matrix.config.name }}
         path: indexing-tools.zip
     - name: Upload clangd asset
       uses: actions/upload-release-asset@v1.0.1
