@@ -130,7 +130,6 @@ jobs:
         ${{ env.CLANGD_DIR }}/bin/clangd
         ${{ env.CLANGD_DIR }}/lib/clang
     - name: Archive indexing-tools
-      if: matrix.config.name == 'linux'
       run: >
         7z a indexing-tools.zip
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
