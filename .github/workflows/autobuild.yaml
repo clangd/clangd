@@ -51,6 +51,7 @@ jobs:
             "-DLLVM_ENABLE_ZLIB=OFF"
             "-DLLVM_USE_CRT_RELEASE=MT"
             "-DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON"
+          binary_extension: ".exe"
         - name: mac
           os: macos-latest
           preinstall: brew install ninja zlib p7zip
@@ -152,25 +153,38 @@ jobs:
         "-DGRPC_INSTALL_PATH=grpc-installation"
         ${{ matrix.config.cmake }}
     - name: Ninja
-      run: ninja -C ${{ env.CLANGD_DIR }} clangd
-    - name: Archive
+      run: ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer
+    - name: Archive clangd
       run: >
         7z a clangd.zip
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
-        ${{ env.CLANGD_DIR }}/bin/clangd*
+        ${{ env.CLANGD_DIR }}/bin/clangd${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/lib/clang
+    - name: Archive indexing-tools
+      run: >
+        7z a indexing-tools.zip
+        ${{ env.CLANGD_DIR }}/LICENSE.TXT
+        ${{ env.CLANGD_DIR }}/bin/clangd-indexer${{ matrix.config.binary_extension }}
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
         name: ${{ matrix.config.name }}
         path: clangd.zip
-    - name: Upload asset
+    - name: Upload clangd asset
       uses: actions/upload-release-asset@v1.0.1
       env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: clangd-${{ matrix.config.name }}-${{ github.event.release.tag_name }}.zip
         asset_path: clangd.zip
+        asset_content_type: application/zip
+    - name: Upload indexing-tools asset
+      uses: actions/upload-release-asset@v1.0.1
+      env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: clangd-indexing-tools-${{ matrix.config.name }}-${{ github.event.release.tag_name }}.zip
+        asset_path: indexing-tools.zip
         asset_content_type: application/zip
     - name: Check binary compatibility
       if: matrix.config.name == 'linux'
