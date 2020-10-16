@@ -72,7 +72,8 @@ jobs:
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
             "-DCMAKE_PROJECT_INCLUDE=$GITHUB_WORKSPACE/.github/workflows/linux-static-deps.cmake"
             "-DCLANGD_ENABLE_REMOTE=ON"
-          # This is needed to avoid dynamic linking of additional libraries.
+          # Using c-ares as a module prevents dynamic linking of unneeded
+          # libraries. All other gRPC dependencies can be built from sources.
           grpc_cmake: >
             "-DgRPC_CARES_PROVIDER=package"
     steps:
@@ -104,19 +105,16 @@ jobs:
         path: grpc
         ref: v1.32.0
         submodules: recursive
-    - name: Prepare gRPC build environment
-      if: matrix.config.name == 'linux'
-      run: |
-        mkdir grpc-installation
-        mkdir grpc/build
-        echo "GRPC_INSTALL_PATH=$(realpath grpc-installation)" >> $GITHUB_ENV
-        echo "GRPC_BUILD_PATH=$(realpath grpc/build)" >> $GITHUB_ENV
     - name: Build gRPC
       if: matrix.config.name == 'linux'
       run: >
-        cmake -G Ninja -S grpc -B ${{ env.GRPC_BUILD_PATH }}
+        mkdir grpc-installation
+
+        mkdir grpc-build
+
+        cmake -G Ninja -S grpc -B grpc-build
         "-DgRPC_INSTALL=ON"
-        "-DCMAKE_INSTALL_PREFIX=${{ env.GRPC_INSTALL_PATH }}"
+        "-DCMAKE_INSTALL_PREFIX=grpc-installation"
         "-DCMAKE_BUILD_TYPE=Release"
         ${{ matrix.config.grpc_cmake }}
 
@@ -151,7 +149,7 @@ jobs:
         "-DLLVM_ENABLE_PLUGINS=OFF"
         "-DCMAKE_C_FLAGS_RELEASE=${{ matrix.config.cflags }}"
         "-DCMAKE_CXX_FLAGS_RELEASE=${{ matrix.config.cflags }}"
-        "-DGRPC_INSTALL_PATH=${{ env.GRPC_INSTALL_PATH }}"
+        "-DGRPC_INSTALL_PATH=grpc-installation"
         ${{ matrix.config.cmake }}
     - name: Ninja
       run: ninja -C ${{ env.CLANGD_DIR }} clangd
