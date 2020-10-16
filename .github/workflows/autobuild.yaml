@@ -118,7 +118,7 @@ jobs:
         "-DCMAKE_BUILD_TYPE=Release"
         ${{ matrix.config.grpc_cmake }}
 
-        ninja -C ${{ env.GPC_BUILD_PATH }} install
+        ninja -C grpc-build install
     - name: Fetch target commit
       uses: actions/download-artifact@v1
       with: { name: release }
