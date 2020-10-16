@@ -128,22 +128,14 @@ jobs:
         7z a clangd.zip
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
         ${{ env.CLANGD_DIR }}/bin/clangd
+        ${{ env.CLANGD_DIR }}/bin/clangd.exe
         ${{ env.CLANGD_DIR }}/lib/clang
     - name: Archive indexing-tools
       run: >
         7z a indexing-tools.zip
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
         ${{ env.CLANGD_DIR }}/bin/clangd-indexer
-    - name: Upload clangd artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: ${{ matrix.config.name }}
-        path: clangd.zip
-    - name: Upload indexing tools artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: indexing-tools-${{ matrix.config.name }}
-        path: indexing-tools.zip
+        ${{ env.CLANGD_DIR }}/bin/clangd-indexer.exe
     - name: Upload clangd asset
       uses: actions/upload-release-asset@v1.0.1
       env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
