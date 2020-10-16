@@ -135,6 +135,11 @@ jobs:
         7z a indexing-tools.zip
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
         ${{ env.CLANGD_DIR }}/bin/clangd-indexer${{ matrix.config.binary_extension }}
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: ${{ matrix.config.name }}
+        path: clangd.zip
     - name: Upload clangd asset
       uses: actions/upload-release-asset@v1.0.1
       env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
