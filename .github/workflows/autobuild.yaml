@@ -51,6 +51,7 @@ jobs:
             "-DLLVM_ENABLE_ZLIB=OFF"
             "-DLLVM_USE_CRT_RELEASE=MT"
             "-DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON"
+          binary_extension: ".exe"
         - name: mac
           os: macos-latest
           preinstall: brew install ninja zlib p7zip
@@ -62,7 +63,7 @@ jobs:
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
         - name: linux
           os: ubuntu-latest
-          preinstall: sudo apt-get install ninja-build libz-dev
+          preinstall: sudo apt-get install ninja-build libz-dev libc-ares-dev
           cflags: -O3 -gline-tables-only -DNDEBUG -include $GITHUB_WORKSPACE/.github/workflows/lib_compat.h
           cmake: >
             "-DCMAKE_C_COMPILER=clang"
@@ -71,6 +72,11 @@ jobs:
             "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
             "-DCMAKE_PROJECT_INCLUDE=$GITHUB_WORKSPACE/.github/workflows/linux-static-deps.cmake"
+            "-DCLANGD_ENABLE_REMOTE=ON"
+          # Using c-ares as a module prevents dynamic linking of unneeded
+          # libraries. All other gRPC dependencies can be built from sources.
+          grpc_cmake: >
+            "-DgRPC_CARES_PROVIDER=package"
     steps:
     - name: Clone scripts
       uses: actions/checkout@v2
@@ -90,6 +96,30 @@ jobs:
             echo "$($name)=$($value)" >> $env:GITHUB_ENV
           }
         }
+    # FIXME: gRPC support is currently available only on Linux. Other platforms
+    # will be added later.
+    - name: Clone gRPC
+      if: matrix.config.name == 'linux'
+      uses: actions/checkout@v2
+      with:
+        repository: grpc/grpc
+        path: grpc
+        ref: v1.32.0
+        submodules: recursive
+    - name: Build gRPC
+      if: matrix.config.name == 'linux'
+      run: >
+        mkdir grpc-installation
+
+        mkdir grpc-build
+
+        cmake -G Ninja -S grpc -B grpc-build
+        "-DgRPC_INSTALL=ON"
+        "-DCMAKE_INSTALL_PREFIX=grpc-installation"
+        "-DCMAKE_BUILD_TYPE=Release"
+        ${{ matrix.config.grpc_cmake }}
+
+        ninja -C grpc-build install
     - name: Fetch target commit
       uses: actions/download-artifact@v1
       with: { name: release }
@@ -120,22 +150,36 @@ jobs:
         "-DLLVM_ENABLE_PLUGINS=OFF"
         "-DCMAKE_C_FLAGS_RELEASE=${{ matrix.config.cflags }}"
         "-DCMAKE_CXX_FLAGS_RELEASE=${{ matrix.config.cflags }}"
+        "-DGRPC_INSTALL_PATH=grpc-installation"
         ${{ matrix.config.cmake }}
     - name: Ninja
-      run: ninja -C ${{ env.CLANGD_DIR }} clangd
-    - name: Archive
+      run: ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer
+    - name: Archive clangd
       run: >
         7z a clangd.zip
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
-        ${{ env.CLANGD_DIR }}/bin/clangd*
+        ${{ env.CLANGD_DIR }}/bin/clangd${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/lib/clang
-    - name: Upload asset
+    - name: Archive indexing-tools
+      run: >
+        7z a indexing-tools.zip
+        ${{ env.CLANGD_DIR }}/LICENSE.TXT
+        ${{ env.CLANGD_DIR }}/bin/clangd-indexer${{ matrix.config.binary_extension }}
+    - name: Upload clangd asset
       uses: actions/upload-release-asset@v1.0.1
       env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: clangd-${{ matrix.config.name }}-${{ github.event.release.tag_name }}.zip
         asset_path: clangd.zip
+        asset_content_type: application/zip
+    - name: Upload indexing-tools asset
+      uses: actions/upload-release-asset@v1.0.1
+      env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: clangd-indexing-tools-${{ matrix.config.name }}-${{ github.event.release.tag_name }}.zip
+        asset_path: indexing-tools.zip
         asset_content_type: application/zip
     - name: Check binary compatibility
       if: matrix.config.name == 'linux'
