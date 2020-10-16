@@ -51,6 +51,7 @@ jobs:
             "-DLLVM_ENABLE_ZLIB=OFF"
             "-DLLVM_USE_CRT_RELEASE=MT"
             "-DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON"
+          binary_extension: ".exe"
         - name: mac
           os: macos-latest
           preinstall: brew install ninja zlib p7zip
@@ -127,15 +128,13 @@ jobs:
       run: >
         7z a clangd.zip
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
-        ${{ env.CLANGD_DIR }}/bin/clangd
-        ${{ env.CLANGD_DIR }}/bin/clangd.exe
+        ${{ env.CLANGD_DIR }}/bin/clangd${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/lib/clang
     - name: Archive indexing-tools
       run: >
         7z a indexing-tools.zip
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
-        ${{ env.CLANGD_DIR }}/bin/clangd-indexer
-        ${{ env.CLANGD_DIR }}/bin/clangd-indexer.exe
+        ${{ env.CLANGD_DIR }}/bin/clangd-indexer${{ matrix.config.binary_extension }}
     - name: Upload clangd asset
       uses: actions/upload-release-asset@v1.0.1
       env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
