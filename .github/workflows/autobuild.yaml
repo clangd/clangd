@@ -153,7 +153,7 @@ jobs:
         "-DGRPC_INSTALL_PATH=grpc-installation"
         ${{ matrix.config.cmake }}
     - name: Ninja
-      run: ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer
+      run: ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer clangd-index-server
     - name: Archive clangd
       run: >
         7z a clangd.zip
@@ -165,6 +165,7 @@ jobs:
         7z a indexing-tools.zip
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
         ${{ env.CLANGD_DIR }}/bin/clangd-indexer${{ matrix.config.binary_extension }}
+        ${{ env.CLANGD_DIR }}/bin/clangd-index-server${{ matrix.config.binary_extension }}
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
