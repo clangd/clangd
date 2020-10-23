@@ -166,6 +166,7 @@ jobs:
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
         ${{ env.CLANGD_DIR }}/bin/clangd-indexer${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/bin/clangd-index-server${{ matrix.config.binary_extension }}
+        ${{ env.CLANGD_DIR }}/lib/clang
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
