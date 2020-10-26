@@ -31,7 +31,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: Compute release info
       run: |
-        echo "RELEASE_COMMIT_SHORT=$(printf \"%.12s\" ${{ steps.pick.outputs.sha }})" >> $GITHUB_ENV
+        echo "RELEASE_COMMIT_SHORT=$(printf '%.12s' ${{ steps.pick.outputs.sha }})" >> $GITHUB_ENV
         echo "RELEASE_DATE=$(date -u +%Y%m%d)" >> $GITHUB_ENV
     - name: Create release
       uses: actions/create-release@master
