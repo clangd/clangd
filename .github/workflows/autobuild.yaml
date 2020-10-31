@@ -44,13 +44,11 @@ jobs:
           preinstall: choco install ninja nasm
           vcvars: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat
           cflags: /O2 /DNDEBUG
-          # FIXME: remove ALLOW_OLD_TOOLCHAIN once VS 16.5 is available.
           cmake: >
             "-DCMAKE_C_COMPILER=cl"
             "-DCMAKE_CXX_COMPILER=cl"
             "-DLLVM_ENABLE_ZLIB=OFF"
             "-DLLVM_USE_CRT_RELEASE=MT"
-            "-DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON"
           grpc_cmake: >
             "-DgRPC_MSVC_STATIC_RUNTIME=ON"
           binary_extension: ".exe"
