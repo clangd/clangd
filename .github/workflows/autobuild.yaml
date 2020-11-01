@@ -41,7 +41,7 @@ jobs:
         config:
         - name: windows
           os: windows-latest
-          preinstall: choco install ninja
+          preinstall: choco install ninja nasm
           vcvars: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat
           cflags: /O2 /DNDEBUG
           # FIXME: remove ALLOW_OLD_TOOLCHAIN once VS 16.5 is available.
@@ -51,6 +51,8 @@ jobs:
             "-DLLVM_ENABLE_ZLIB=OFF"
             "-DLLVM_USE_CRT_RELEASE=MT"
             "-DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON"
+          grpc_cmake: >
+            "-DgRPC_MSVC_STATIC_RUNTIME=ON"
           binary_extension: ".exe"
         - name: mac
           os: macos-latest
@@ -72,7 +74,6 @@ jobs:
             "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
             "-DCMAKE_PROJECT_INCLUDE=$GITHUB_WORKSPACE/.github/workflows/linux-static-deps.cmake"
-            "-DCLANGD_ENABLE_REMOTE=ON"
           # Using c-ares as a module prevents dynamic linking of unneeded
           # libraries. All other gRPC dependencies can be built from sources.
           grpc_cmake: >
@@ -99,7 +100,6 @@ jobs:
     # FIXME: gRPC support is currently available only on Linux. Other platforms
     # will be added later.
     - name: Clone gRPC
-      if: matrix.config.name == 'linux'
       uses: actions/checkout@v2
       with:
         repository: grpc/grpc
@@ -107,7 +107,6 @@ jobs:
         ref: v1.32.0
         submodules: recursive
     - name: Build gRPC
-      if: matrix.config.name == 'linux'
       run: >
         mkdir grpc-installation
 
@@ -150,10 +149,11 @@ jobs:
         "-DLLVM_ENABLE_PLUGINS=OFF"
         "-DCMAKE_C_FLAGS_RELEASE=${{ matrix.config.cflags }}"
         "-DCMAKE_CXX_FLAGS_RELEASE=${{ matrix.config.cflags }}"
+        "-DCLANGD_ENABLE_REMOTE=ON"
         "-DGRPC_INSTALL_PATH=grpc-installation"
         ${{ matrix.config.cmake }}
     - name: Ninja
-      run: ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer
+      run: ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer clangd-index-server
     - name: Archive clangd
       run: >
         7z a clangd.zip
@@ -165,6 +165,8 @@ jobs:
         7z a indexing-tools.zip
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
         ${{ env.CLANGD_DIR }}/bin/clangd-indexer${{ matrix.config.binary_extension }}
+        ${{ env.CLANGD_DIR }}/bin/clangd-index-server${{ matrix.config.binary_extension }}
+        ${{ env.CLANGD_DIR }}/lib/clang
     - name: Upload clangd asset
       uses: actions/upload-release-asset@v1.0.1
       env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
