@@ -104,7 +104,7 @@ jobs:
       with:
         repository: grpc/grpc
         path: grpc
-        ref: v1.32.0
+        ref: v1.33.2
         submodules: recursive
     - name: Build gRPC
       run: >
