@@ -109,13 +109,13 @@ jobs:
         submodules: recursive
     - name: Build gRPC
       run: >
-        mkdir grpc-installation
+        mkdir $HOME/grpc-installation
 
         mkdir grpc-build
 
         cmake -G Ninja -S grpc -B grpc-build
         "-DgRPC_INSTALL=ON"
-        "-DCMAKE_INSTALL_PREFIX=grpc-installation"
+        "-DCMAKE_INSTALL_PREFIX=$HOME/grpc-installation"
         "-DCMAKE_BUILD_TYPE=Release"
         ${{ matrix.config.grpc_cmake }}
 
@@ -151,7 +151,7 @@ jobs:
         "-DCMAKE_C_FLAGS_RELEASE=${{ matrix.config.cflags }}"
         "-DCMAKE_CXX_FLAGS_RELEASE=${{ matrix.config.cflags }}"
         "-DCLANGD_ENABLE_REMOTE=ON"
-        "-DGRPC_INSTALL_PATH=grpc-installation"
+        "-DGRPC_INSTALL_PATH=$HOME/grpc-installation"
         ${{ matrix.config.cmake }}
     - name: Ninja
       run: ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer clangd-index-server
