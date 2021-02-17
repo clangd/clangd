@@ -168,11 +168,6 @@ jobs:
         ${{ env.CLANGD_DIR }}/bin/clangd-indexer${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/bin/clangd-index-server${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/lib/clang
-    - name: Upload artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: ${{ matrix.config.name }}
-        path: clangd.zip
     - name: Upload clangd asset
       uses: actions/upload-release-asset@v1.0.1
       env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
