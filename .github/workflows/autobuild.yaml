@@ -95,8 +95,6 @@ jobs:
             echo "$($name)=$($value)" >> $env:GITHUB_ENV
           }
         }
-    # FIXME: gRPC support is currently available only on Linux. Other platforms
-    # will be added later.
     - name: Clone gRPC
       uses: actions/checkout@v2
       with:
