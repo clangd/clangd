@@ -44,12 +44,12 @@ jobs:
           preinstall: choco install ninja nasm
           vcvars: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat
           cflags: /O2 /DNDEBUG
-          cmake: >
+          cmake: >-
             "-DCMAKE_C_COMPILER=cl"
             "-DCMAKE_CXX_COMPILER=cl"
             "-DLLVM_ENABLE_ZLIB=OFF"
             "-DLLVM_USE_CRT_RELEASE=MT"
-          grpc_cmake: >
+          grpc_cmake: >-
             "-DgRPC_MSVC_STATIC_RUNTIME=ON"
           binary_extension: ".exe"
         - name: mac
@@ -57,7 +57,7 @@ jobs:
           preinstall: brew install ninja zlib p7zip
           cflags: -O3 -gline-tables-only -DNDEBUG
           env: MACOSX_DEPLOYMENT_TARGET=10.9
-          cmake: >
+          cmake: >-
             "-DCMAKE_C_COMPILER=clang"
             "-DCMAKE_CXX_COMPILER=clang++"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
