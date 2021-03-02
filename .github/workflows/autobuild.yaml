@@ -62,7 +62,7 @@ jobs:
             "-DCMAKE_CXX_COMPILER=clang++"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
         - name: linux
-          os: ubuntu-latest
+          os: ubuntu-18.04
           preinstall: sudo apt-get install ninja-build libz-dev libc-ares-dev
           cflags: -O3 -gline-tables-only -DNDEBUG -include $GITHUB_WORKSPACE/.github/workflows/lib_compat.h
           cmake: >-
