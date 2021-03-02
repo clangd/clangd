@@ -65,7 +65,7 @@ jobs:
           os: ubuntu-latest
           preinstall: sudo apt-get install ninja-build libz-dev libc-ares-dev
           cflags: -O3 -gline-tables-only -DNDEBUG -include $GITHUB_WORKSPACE/.github/workflows/lib_compat.h
-          cmake: >
+          cmake: >-
             "-DCMAKE_C_COMPILER=clang"
             "-DCMAKE_CXX_COMPILER=clang++"
             "-DCMAKE_EXE_LINKER_FLAGS_RELEASE=-static-libgcc -Wl,--compress-debug-sections=zlib"
@@ -74,7 +74,7 @@ jobs:
             "-DCMAKE_PROJECT_INCLUDE=$GITHUB_WORKSPACE/.github/workflows/linux-static-deps.cmake"
           # Using c-ares as a module prevents dynamic linking of unneeded
           # libraries. All other gRPC dependencies can be built from sources.
-          grpc_cmake: >
+          grpc_cmake: >-
             "-DgRPC_CARES_PROVIDER=package"
     steps:
     - name: Clone scripts
