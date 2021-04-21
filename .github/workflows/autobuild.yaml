@@ -16,17 +16,28 @@ jobs:
         grep -m 1 -o "llvm-project@[[:xdigit:]]\{40,\}" << EOF | cut -f 2 -d@ > commit
         ${{ github.event.release.body }}
         EOF
+    - name: Find Repository
+      run: |
+        grep -m 1 -o "\w*/llvm-project@[[:xdigit:]]\{40,\}" << EOF | cut -f 1 -d@ > repo
+        echo "LLVM_COMMIT=$(cat release/commit)" >> $GITHUB_ENV
+        ${{ github.event.release.body }}
+        EOF
     - name: Mark as draft
       run: >
         curl --fail --show-error -XPATCH
         "-HAuthorization: Bearer ${{ secrets.RELEASE_TOKEN }}"
         "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"
         "-d" '{"draft": true}'
-    - name: Persist release info
+    - name: Persist release info for commit
       uses: actions/upload-artifact@v1
       with:
         name: release
         path: commit
+    - name: Persist release info for repository
+      uses: actions/upload-artifact@v1
+      with:
+        name: release
+        path: repo
   # Build clangd using CMake/Ninja.
   #
   # This step is a template that runs on each OS, build config varies slightly.
@@ -126,12 +137,13 @@ jobs:
     - name: Set target commit
       run: |
         echo "LLVM_COMMIT=$(cat release/commit)" >> $GITHUB_ENV
+        echo "LLVM_REPO=$(cat release/commit)" >> $GITHUB_ENV
         echo "CLANGD_DIR=clangd_${{ github.event.release.tag_name }}" >> $GITHUB_ENV
       shell: bash
     - name: Clone LLVM
       uses: actions/checkout@v2
       with:
-        repository: llvm/llvm-project
+        repository: ${{ env.LLVM_REPO }}
         path: llvm-project
         ref: ${{ env.LLVM_COMMIT }}
     - name: CMake
