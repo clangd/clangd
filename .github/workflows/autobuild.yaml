@@ -13,7 +13,7 @@ jobs:
     steps:
     - name: Find LLVM commit
       run: |
-        perl -ne 'print "LLVM_REPO=$1\nLLVM_COMMIT=$2\n" if /(\w+)\/llvm-project@([[:xdigit:]]{4,})/' > commit.env <<EOF
+        perl -ne 'print "LLVM_REPO=$1\nLLVM_COMMIT=$2\n" if /(\w+\/llvm-project)@([[:xdigit:]]{40,})/' > commit.env <<EOF
         ${{ gthub.event.release.body }}
         EOF
     - name: Check LLVM commit was founud
