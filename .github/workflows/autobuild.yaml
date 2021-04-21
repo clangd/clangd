@@ -28,7 +28,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: release
-        path: commit
+        path: commit.env
   # Build clangd using CMake/Ninja.
   #
   # This step is a template that runs on each OS, build config varies slightly.
