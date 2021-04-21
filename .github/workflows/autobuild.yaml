@@ -137,7 +137,7 @@ jobs:
     - name: Set target commit
       run: |
         echo "LLVM_COMMIT=$(cat release/commit)" >> $GITHUB_ENV
-        echo "LLVM_REPO=$(cat release/commit)" >> $GITHUB_ENV
+        echo "LLVM_REPO=$(cat release/repo)" >> $GITHUB_ENV
         echo "CLANGD_DIR=clangd_${{ github.event.release.tag_name }}" >> $GITHUB_ENV
       shell: bash
     - name: Clone LLVM
