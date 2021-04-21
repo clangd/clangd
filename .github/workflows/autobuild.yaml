@@ -19,7 +19,6 @@ jobs:
     - name: Find Repository
       run: |
         grep -m 1 -o "\w*/llvm-project@[[:xdigit:]]\{40,\}" << EOF | cut -f 1 -d@ > repo
-        echo "LLVM_COMMIT=$(cat release/commit)" >> $GITHUB_ENV
         ${{ github.event.release.body }}
         EOF
     - name: Mark as draft
