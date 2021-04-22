@@ -183,7 +183,7 @@ jobs:
       env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_name: clangd-indexing-tools-${{ matrix.config.name }}-${{ github.event.release.tag_name }}.zip
+        asset_name: clangd_indexing_tools-${{ matrix.config.name }}-${{ github.event.release.tag_name }}.zip
         asset_path: indexing-tools.zip
         asset_content_type: application/zip
     - name: Check binary compatibility
