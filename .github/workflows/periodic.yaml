@@ -12,6 +12,7 @@ on:
   #  "-HAuthorization: Bearer <token>" \
   #   https://api.github.com/repos/clangd/clangd/dispatches
   repository_dispatch: { types: periodic }
+  workflow_dispatch:
 jobs:
   # Choose the commit to build a release from.
   #
