@@ -105,7 +105,7 @@ jobs:
         # We use the same version of gRPC for LLVM's clangd-ubuntu-tsan
         # buildbot.
         # https://github.com/llvm/llvm-zorg/blob/master/buildbot/google/docker/buildbot-clangd-ubuntu-clang/Dockerfile
-        ref: v1.33.2
+        ref: v1.36.3
         submodules: recursive
     - name: Build gRPC
       run: >
