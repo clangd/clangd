@@ -94,8 +94,8 @@ jobs:
   create_release:
     name: Create release
     runs-on: ubuntu-latest
-    if: always()
     needs: [schedule_environment, workflow_dispatch_environment]
+    if: always() && (needs.schedule_environment.result == 'success' || needs.workflow_dispatch_environment == 'success')
     steps:
     - name: Fetch environment variables
       uses: actions/download-artifact@v1
@@ -135,8 +135,8 @@ jobs:
   # Uploading releases needs a per-job token that expires after an hour.
   build:
     name: Build ${{ matrix.config.name }}
-    if: always() && needs.create_release.result == 'success'
     needs: create_release
+    if: always() && needs.create_release.result == 'success'
     runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
@@ -310,8 +310,8 @@ jobs:
   # Create the release, and upload the artifacts to it.
   finalize:
     runs-on: ubuntu-latest
-    if: always() && needs.build.result == 'success'
     needs: build
+    if: always() && needs.build.result == 'success'
     steps:
     - name: Fetch release info
       uses: actions/download-artifact@v1
