@@ -237,10 +237,12 @@ jobs:
       with:
         name:
           release
-    - name: Set target commit
+    - name: Get release info
       run: |
         cat env/commit.env >> $GITHUB_ENV
         cat release/release.env >> $GITHUB_ENV
+    - name: Set build directory
+      run: |
         echo "CLANGD_DIR=clangd_${{ env.TAG_NAME }}" >> $GITHUB_ENV
       shell: bash
     - name: Clone LLVM
