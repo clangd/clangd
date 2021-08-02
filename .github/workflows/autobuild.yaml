@@ -210,7 +210,7 @@ jobs:
         # We use the same version of gRPC for LLVM's clangd-ubuntu-tsan
         # buildbot.
         # https://github.com/llvm/llvm-zorg/blob/main/buildbot/google/docker/buildbot-clangd-ubuntu-clang/Dockerfile
-        ref: v1.33.2
+        ref: v1.36.3
         submodules: recursive
     - name: Build gRPC
       run: >
@@ -271,6 +271,7 @@ jobs:
     - name: Ninja
       run: >
         ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer clangd-index-server
+        clangd-index-server-monitor
     - name: Archive clangd
       run: >
         7z a clangd.zip
@@ -283,6 +284,7 @@ jobs:
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
         ${{ env.CLANGD_DIR }}/bin/clangd-indexer${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/bin/clangd-index-server${{ matrix.config.binary_extension }}
+        ${{ env.CLANGD_DIR }}/bin/clangd-index-server-monitor${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/lib/clang
     - name: Upload clangd asset
       uses: actions/upload-release-asset@v1.0.1
