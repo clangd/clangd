@@ -1,41 +1,142 @@
-# Workflow to build binaries for a release.
-# Triggered by release creation, which should include `llvm-project@<full-sha>`.
+# Workflow to build binaries and release them.
+# Triggered by the schedule or manual dispatch, which might include
+# `<owner/llvm-project>@<full-sha>`.
 #
 # Because the build takes more than an hour, our GITHUB_TOKEN credentials may
 # expire. A token `secrets.RELEASE_TOKEN` must exist with public_repo scope.
 name: Build release binaries
 on:
-  release:
-    types: created
+  # Run weekly on sunday at 21:37 UTC (arbitrary)
+  schedule:
+  - cron: '37 21 * * SUN'
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Commit to build from'
+        required: true
+      repo:
+        description: 'Repository to build from'
+        required: true
+        default: 'llvm/llvm-project'
+      release_name:
+        description: 'Release name'
+        required: true
+      tag:
+        description: 'Tag name'
+        required: true
+      description:
+        description: 'Release description'
+        required: true
 jobs:
-  prepare:
+  schedule_environment:
+    name: Create default build environment
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'schedule' }}
     steps:
-    - name: Find LLVM commit
+    - name: Install deps
       run: |
-        perl -ne 'print "LLVM_REPO=$1\nLLVM_COMMIT=$2\n" if /(\w+\/llvm-project)@([[:xdigit:]]{40,})/' > commit.env <<EOF
-        ${{ github.event.release.body }}
-        EOF
-    - name: Check LLVM commit was founud
-      run: grep LLVM_REPO commit.env
-    - name: Mark as draft
+        sudo apt-get install jq
+    - name: Clone scripts
+      uses: actions/checkout@v2
+    - name: Use the default repo
+      run: |
+        echo "LLVM_REPO=${{ github.event.inputs.repo }}" >> commit.env
+    # Choose the commit to build a release from.
+    #
+    # We want to avoid unbuildable revisions: choose the last green from CI.
+    # FIXME: The criteria should be some consistent set of buildbots passing.
+    # Use clangd/actions/pick after
+    # https://github.com/ramasilveyra/last-successful-gh-commit/issues/2 has
+    # been addressed.
+    - name: Get commit hash for LLVM head
       run: >
-        curl --fail --show-error -XPATCH
-        "-HAuthorization: Bearer ${{ secrets.RELEASE_TOKEN }}"
-        "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"
-        "-d" '{"draft": true}'
-    - name: Persist release info
-      uses: actions/upload-artifact@v1
+        COMMIT=$(curl --fail --show-error
+        "https://api.github.com/repos/llvm/llvm-project/commits/main" |
+        jq ".sha" -r)
+
+        echo "LLVM_COMMIT=$COMMIT" >> $GITHUB_ENV
+    - name: Compute release info
+      run: |
+        echo "RELEASE_COMMIT_SHORT=$(printf '%.12s' ${{ env.LLVM_COMMIT }})" >> $GITHUB_ENV
+        echo "RELEASE_DATE=$(date -u +%Y%m%d)" >> $GITHUB_ENV
+        echo "LLVM_COMMIT=${{ env.LLVM_COMMIT }}" >> commit.env
+    - name: Use date as the tag name
+      run: >
+        echo "TAG_NAME=snapshot_${{ env.RELEASE_DATE }}" >> commit.env
+    - name: Use date and release commit as release name
+      run: >
+        echo "RELEASE_NAME=${{ env.RELEASE_DATE }} @${{ env.RELEASE_COMMIT_SHORT }}" >> commit.env
+    - name: Generate default release description
+      run: >
+        echo "RELEASE_DESCRIPTION=Unstable snapshot of clangd on ${{ env.RELEASE_DATE }}." >> commit.env
+    - name: Upload result
+      uses: actions/upload-artifact@v2
+      with:
+        name: env
+        path: commit.env
+  workflow_dispatch_environment:
+    name: Use inputs to create build environment
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    steps:
+    - name: Use repo and commit from the inputs
+      run: |
+        echo "LLVM_REPO=llvm/llvm-project" >> commit.env
+        echo "LLVM_COMMIT=${{ github.event.inputs.commit }}" >> commit.env
+        echo "TAG_NAME=${{ github.event.inputs.tag }}" >> commit.env
+        echo "RELEASE_NAME=${{ github.event.inputs.release_name }}" >> commit.env
+        echo "RELEASE_DESCRIPTION=${{ github.event.inputs.description }}" >> commit.env
+    - name: Upload result
+      uses: actions/upload-artifact@v2
+      with:
+        name: env
+        path: commit.env
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [schedule_environment, workflow_dispatch_environment]
+    steps:
+    - name: Fetch environment variables
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          env
+    - name: Set environment variables
+      run: |
+        cat env/commit.env >> $GITHUB_ENV
+    - name: Create release
+      uses: actions/create-release@master
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.TAG_NAME }}
+        release_name: ${{ env.RELEASE_NAME }}
+        body: |
+          ${{ env.RELEASE_DESCRIPTION }}
+
+          Built from ${{ env.LLVM_REPO }}@${{ env.LLVM_COMMIT }}.
+        prerelease: true
+        draft: true
+    - name: Preserve release info
+      run: |
+        echo "UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}" >> release.env
+        echo "TAG_NAME=${{ env.TAG_NAME }}" >> release.env
+        echo "RELEASE_ID=${{ steps.create_release.outputs.id }}" >> release.env
+    - name: Upload result
+      uses: actions/upload-artifact@v2
       with:
         name: release
-        path: commit.env
+        path: release.env
   # Build clangd using CMake/Ninja.
   #
   # This step is a template that runs on each OS, build config varies slightly.
   # Uploading releases needs a per-job token that expires after an hour.
   build:
     name: Build ${{ matrix.config.name }}
-    needs: prepare
+    if: always() && needs.create_release.result == 'success'
+    needs: create_release
     runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
@@ -108,8 +209,8 @@ jobs:
         path: grpc
         # We use the same version of gRPC for LLVM's clangd-ubuntu-tsan
         # buildbot.
-        # https://github.com/llvm/llvm-zorg/blob/master/buildbot/google/docker/buildbot-clangd-ubuntu-clang/Dockerfile
-        ref: v1.36.3
+        # https://github.com/llvm/llvm-zorg/blob/main/buildbot/google/docker/buildbot-clangd-ubuntu-clang/Dockerfile
+        ref: v1.33.2
         submodules: recursive
     - name: Build gRPC
       run: >
@@ -128,11 +229,19 @@ jobs:
         ninja -C grpc-build install
     - name: Fetch target commit
       uses: actions/download-artifact@v1
-      with: { name: release }
+      with:
+        name:
+          env
+    - name: Fetch release info
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          release
     - name: Set target commit
       run: |
-        cat release/commit.env >> $GITHUB_ENV
-        echo "CLANGD_DIR=clangd_${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+        cat env/commit.env >> $GITHUB_ENV
+        cat release/release.env >> $GITHUB_ENV
+        echo "CLANGD_DIR=clangd_${{ env.TAG_NAME }}" >> $GITHUB_ENV
       shell: bash
     - name: Clone LLVM
       uses: actions/checkout@v2
@@ -162,7 +271,6 @@ jobs:
     - name: Ninja
       run: >
         ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer clangd-index-server
-        clangd-index-server-monitor
     - name: Archive clangd
       run: >
         7z a clangd.zip
@@ -175,22 +283,23 @@ jobs:
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
         ${{ env.CLANGD_DIR }}/bin/clangd-indexer${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/bin/clangd-index-server${{ matrix.config.binary_extension }}
-        ${{ env.CLANGD_DIR }}/bin/clangd-index-server-monitor${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/lib/clang
     - name: Upload clangd asset
       uses: actions/upload-release-asset@v1.0.1
-      env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
+      env:
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_name: clangd-${{ matrix.config.name }}-${{ github.event.release.tag_name }}.zip
+        upload_url: ${{ env.UPLOAD_URL }}
+        asset_name: clangd-${{ matrix.config.name }}-${{ env.TAG_NAME }}.zip
         asset_path: clangd.zip
         asset_content_type: application/zip
     - name: Upload indexing-tools asset
       uses: actions/upload-release-asset@v1.0.1
-      env: { GITHUB_TOKEN: "${{ secrets.RELEASE_TOKEN }}" }
+      env:
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_name: clangd_indexing_tools-${{ matrix.config.name }}-${{ github.event.release.tag_name }}.zip
+        upload_url: ${{ env.UPLOAD_URL }}
+        asset_name: clangd_indexing_tools-${{ matrix.config.name }}-${{ env.TAG_NAME }}.zip
         asset_path: indexing-tools.zip
         asset_content_type: application/zip
     - name: Check binary compatibility
@@ -199,11 +308,20 @@ jobs:
   # Create the release, and upload the artifacts to it.
   finalize:
     runs-on: ubuntu-latest
+    if: always() && needs.build.result == 'success'
     needs: build
     steps:
+    - name: Fetch release info
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          release
+    - name: Update the env variables
+      run: >
+        cat release/release.env >> $GITHUB_ENV
     - name: Publish release
       run: >
         curl -XPATCH
         "-HAuthorization: Bearer ${{ secrets.RELEASE_TOKEN }}"
-        "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"
+        "https://api.github.com/repos/${{ github.repository }}/releases/${{ env.RELEASE_ID }}"
         "-d" '{"draft": false}'
