@@ -38,9 +38,6 @@ jobs:
         sudo apt-get install jq
     - name: Clone scripts
       uses: actions/checkout@v2
-    - name: Use the default repo
-      run: |
-        echo "LLVM_REPO=${{ github.event.inputs.repo }}" >> commit.env
     # Choose the commit to build a release from.
     #
     # We want to avoid unbuildable revisions: choose the last green from CI.
@@ -59,6 +56,7 @@ jobs:
       run: |
         echo "RELEASE_COMMIT_SHORT=$(printf '%.12s' ${{ env.LLVM_COMMIT }})" >> $GITHUB_ENV
         echo "RELEASE_DATE=$(date -u +%Y%m%d)" >> $GITHUB_ENV
+        echo "LLVM_REPO=llvm/llvm-project" >> commit.env
         echo "LLVM_COMMIT=${{ env.LLVM_COMMIT }}" >> commit.env
     - name: Use date as the tag name
       run: >
@@ -81,7 +79,7 @@ jobs:
     steps:
     - name: Use repo and commit from the inputs
       run: |
-        echo "LLVM_REPO=llvm/llvm-project" >> commit.env
+        echo "LLVM_REPO=${{ github.event.inputs.repo }}" >> commit.env
         echo "LLVM_COMMIT=${{ github.event.inputs.commit }}" >> commit.env
         echo "TAG_NAME=${{ github.event.inputs.tag }}" >> commit.env
         echo "RELEASE_NAME=${{ github.event.inputs.release_name }}" >> commit.env
