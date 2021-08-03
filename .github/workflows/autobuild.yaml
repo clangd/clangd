@@ -93,7 +93,7 @@ jobs:
     name: Create release
     runs-on: ubuntu-latest
     needs: [schedule_environment, workflow_dispatch_environment]
-    if: always() && (needs.schedule_environment.result == 'success' || needs.workflow_dispatch_environment == 'success')
+    if: always() && (needs.schedule_environment.result == 'success' || needs.workflow_dispatch_environment.result == 'success')
     steps:
     - name: Fetch environment variables
       uses: actions/download-artifact@v1
