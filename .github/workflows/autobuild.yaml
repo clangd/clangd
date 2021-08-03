@@ -239,6 +239,7 @@ jobs:
       run: |
         cat env/commit.env >> $GITHUB_ENV
         cat release/release.env >> $GITHUB_ENV
+      shell: bash
     - name: Set build directory
       run: |
         echo "CLANGD_DIR=clangd_${{ env.TAG_NAME }}" >> $GITHUB_ENV
