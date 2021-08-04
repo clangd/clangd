@@ -93,6 +93,9 @@ jobs:
     name: Create release
     runs-on: ubuntu-latest
     needs: [schedule_environment, workflow_dispatch_environment]
+    # Use always() and manually check results here since GitHub Actions do not
+    # support conditionally skipping jobs and there is no way to "exit with
+    # success" from a job.
     if: always() && (needs.schedule_environment.result == 'success' || needs.workflow_dispatch_environment.result == 'success')
     steps:
     - name: Fetch environment variables
@@ -235,11 +238,14 @@ jobs:
       with:
         name:
           release
-    - name: Get release info
+    - name: Put release info into env
       run: |
         cat env/commit.env >> $GITHUB_ENV
         cat release/release.env >> $GITHUB_ENV
       shell: bash
+      # Use environment variables set above to create a directory. This needs
+      # to be a separate step because they are not in the context yet when
+      # being set.
     - name: Set build directory
       run: |
         echo "CLANGD_DIR=clangd_${{ env.TAG_NAME }}" >> $GITHUB_ENV
