@@ -278,7 +278,6 @@ jobs:
     - name: Ninja
       run: >
         ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer clangd-index-server
-        clangd-index-server-monitor
     - name: Archive clangd
       run: >
         7z a clangd.zip
@@ -291,7 +290,6 @@ jobs:
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
         ${{ env.CLANGD_DIR }}/bin/clangd-indexer${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/bin/clangd-index-server${{ matrix.config.binary_extension }}
-        ${{ env.CLANGD_DIR }}/bin/clangd-index-server-monitor${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/lib/clang
     - name: Upload clangd asset
       uses: actions/upload-release-asset@v1.0.1
