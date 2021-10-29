@@ -160,12 +160,12 @@ jobs:
           os: macos-latest
           preinstall: brew install ninja zlib p7zip
           cflags: -O3 -gline-tables-only -DNDEBUG
-          env: MACOSX_DEPLOYMENT_TARGET=10.9
           cmake: >-
             "-DCMAKE_C_COMPILER=clang"
             "-DCMAKE_CXX_COMPILER=clang++"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
             "-DCMAKE_OSX_ARCHITECTURES=x86_64;arm64"
+            "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.9"
           # BoringSSL doesn't support universal binaries when building with ASM.
           grpc_cmake: >-
             "-DOPENSSL_NO_ASM=ON"
