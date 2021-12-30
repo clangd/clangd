@@ -263,7 +263,7 @@ jobs:
         cp llvm-project/llvm/LICENSE.TXT ${{ env.CLANGD_DIR }}
 
         cmake -G Ninja -S llvm-project/llvm -B ${{ env.CLANGD_DIR }}
-        "-DLLVM_ENABLE_PROJECTS=clang;clang-tools-extra"
+        "-DLLVM_ENABLE_PROJECTS=clang;clang-tools-extra;openmp"
         "-DLLVM_ENABLE_ASSERTIONS=OFF"
         "-DLLVM_ENABLE_BACKTRACES=ON"
         "-DLLVM_ENABLE_TERMINFO=OFF"
@@ -279,6 +279,9 @@ jobs:
       run: >
         ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer clangd-index-server
         clangd-index-server-monitor
+    - name: Install OpenMP headers
+      run: >
+        cp ${{ env.CLANGD_DIR }}/projects/src/omp{,-tools}.h ${{ env.CLANGD_DIR }}/lib/clang/*/include
     - name: Archive clangd
       run: >
         7z a clangd.zip
