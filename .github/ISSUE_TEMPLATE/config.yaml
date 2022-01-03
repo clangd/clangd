@@ -1,0 +1,4 @@
+contact_links:
+   - name: Questions and discussions
+     url: https://github.com/clangd/clangd/discussions
+     about: Usage questions, ideas and proposals
