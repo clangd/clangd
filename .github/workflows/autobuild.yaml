@@ -281,7 +281,8 @@ jobs:
         clangd-index-server-monitor
     - name: Install OpenMP headers
       run: >
-        cp ${{ env.CLANGD_DIR }}/projects/openmp/runtime/src/omp{,-tools}.h ${{ env.CLANGD_DIR }}/lib/clang/*/include
+        cp ${{ env.CLANGD_DIR }}/projects/openmp/runtime/src/omp.h ${{ env.CLANGD_DIR }}/lib/clang/*/include
+        cp ${{ env.CLANGD_DIR }}/projects/openmp/runtime/src/omp-tools.h ${{ env.CLANGD_DIR }}/lib/clang/*/include
     - name: Archive clangd
       run: >
         7z a clangd.zip
