@@ -144,7 +144,7 @@ jobs:
       matrix:
         config:
         - name: windows
-          os: windows-latest
+          os: windows-2019
           preinstall: choco install ninja nasm
           vcvars: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat
           cflags: /O2 /DNDEBUG
