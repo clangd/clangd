@@ -273,6 +273,7 @@ jobs:
         "-DCMAKE_C_FLAGS_RELEASE=${{ matrix.config.cflags }}"
         "-DCMAKE_CXX_FLAGS_RELEASE=${{ matrix.config.cflags }}"
         "-DCLANGD_ENABLE_REMOTE=ON"
+        "-DLLVM_ENABLE_ZSTD=OFF"
         "-DGRPC_INSTALL_PATH=$HOME/grpc-installation"
         ${{ matrix.config.cmake }}
     - name: Ninja
