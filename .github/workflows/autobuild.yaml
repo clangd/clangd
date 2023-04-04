@@ -171,7 +171,7 @@ jobs:
             "-DOPENSSL_NO_ASM=ON"
         - name: linux
           os: ubuntu-18.04
-          preinstall: sudo apt-get install ninja-build libz-dev libc-ares-dev
+          preinstall: sudo apt-get update && sudo apt-get install ninja-build libz-dev libc-ares-dev
           cflags: -O3 -gline-tables-only -DNDEBUG -include $GITHUB_WORKSPACE/.github/workflows/lib_compat.h
           cmake: >-
             "-DCMAKE_C_COMPILER=clang"
