@@ -138,7 +138,6 @@ jobs:
     name: Build ${{ matrix.config.name }}
     needs: create_release
     if: always() && needs.create_release.result == 'success'
-    runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -170,12 +169,21 @@ jobs:
           grpc_cmake: >-
             "-DOPENSSL_NO_ASM=ON"
         - name: linux
-          os: ubuntu-18.04
-          preinstall: sudo apt-get install ninja-build libz-dev libc-ares-dev
+          os: ubuntu-latest
+          container: ubuntu:18.04
+          preinstall: >-
+            apt-get update &&
+            apt-get install -y ninja-build libz-dev libc-ares-dev wget clang-9
+            software-properties-common p7zip-full curl &&
+            add-apt-repository ppa:git-core/ppa &&
+            wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - &&
+            apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' &&
+            apt-get update &&
+            apt-get install -y git cmake
           cflags: -O3 -gline-tables-only -DNDEBUG -include $GITHUB_WORKSPACE/.github/workflows/lib_compat.h
           cmake: >-
-            "-DCMAKE_C_COMPILER=clang"
-            "-DCMAKE_CXX_COMPILER=clang++"
+            "-DCMAKE_C_COMPILER=clang-9"
+            "-DCMAKE_CXX_COMPILER=clang++-9"
             "-DCMAKE_EXE_LINKER_FLAGS_RELEASE=-static-libgcc -Wl,--compress-debug-sections=zlib"
             "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
@@ -184,6 +192,8 @@ jobs:
           # libraries. All other gRPC dependencies can be built from sources.
           grpc_cmake: >-
             "-DgRPC_CARES_PROVIDER=package"
+    runs-on: ${{ matrix.config.os }}
+    container: ${{ matrix.config.container }}
     steps:
     - name: Clone scripts
       uses: actions/checkout@v2
