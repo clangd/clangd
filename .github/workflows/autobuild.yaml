@@ -307,23 +307,23 @@ jobs:
         ${{ env.CLANGD_DIR }}/bin/clangd-index-server-monitor${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/lib/clang
     - name: Upload clangd asset
-      uses: actions/upload-release-asset@v1.0.1
+      shell: bash
+      run: |
+        mv clangd.zip ${{ env.RELEASE_FILE_NAME }}
+        gh release upload ${{ env.TAG_NAME }} ${{ env.RELEASE_FILE_NAME }}
       env:
-        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-      with:
-        upload_url: ${{ env.UPLOAD_URL }}
-        asset_name: clangd-${{ matrix.config.name }}-${{ env.TAG_NAME }}.zip
-        asset_path: clangd.zip
-        asset_content_type: application/zip
+        GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        GH_REPO: ${{ github.repository }}
+        RELEASE_FILE_NAME: clangd-${{ matrix.config.name }}-${{ env.TAG_NAME }}.zip
     - name: Upload indexing-tools asset
-      uses: actions/upload-release-asset@v1.0.1
+      shell: bash
+      run: |
+        mv indexing-tools.zip ${{ env.RELEASE_FILE_NAME }}
+        gh release upload ${{ env.TAG_NAME }} ${{ env.RELEASE_FILE_NAME }}
       env:
-        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-      with:
-        upload_url: ${{ env.UPLOAD_URL }}
-        asset_name: clangd_indexing_tools-${{ matrix.config.name }}-${{ env.TAG_NAME }}.zip
-        asset_path: indexing-tools.zip
-        asset_content_type: application/zip
+        GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        GH_REPO: ${{ github.repository }}
+        RELEASE_FILE_NAME: clangd-${{ matrix.config.name }}-${{ env.TAG_NAME }}.zip
     - name: Check binary compatibility
       if: matrix.config.name == 'linux'
       run: .github/workflows/lib_compat_test.py --lib=GLIBC_2.18 "$CLANGD_DIR/bin/clangd"
