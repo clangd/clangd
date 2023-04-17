@@ -342,8 +342,7 @@ jobs:
       run: >
         cat release/release.env >> $GITHUB_ENV
     - name: Publish release
-      run: >
-        curl -XPATCH
-        "-HAuthorization: Bearer ${{ secrets.RELEASE_TOKEN }}"
-        "https://api.github.com/repos/${{ github.repository }}/releases/${{ env.RELEASE_ID }}"
-        "-d" '{"draft": false}'
+      run: gh release edit ${{ env.TAG_NAME }} --draft=false
+      env:
+        GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        GH_REPO: ${{ github.repository }}
