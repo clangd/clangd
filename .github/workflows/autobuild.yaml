@@ -107,13 +107,11 @@ jobs:
       run: |
         cat env/commit.env >> $GITHUB_ENV
     - name: Create release
-      uses: actions/create-release@master
+      uses: softprops/action-gh-release@v1
       id: create_release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ env.TAG_NAME }}
-        release_name: ${{ env.RELEASE_NAME }}
+        name: ${{ env.RELEASE_NAME }}
         body: |
           ${{ env.RELEASE_DESCRIPTION }}
 
@@ -122,7 +120,7 @@ jobs:
         draft: true
     - name: Preserve release info
       run: |
-        echo "UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}" >> release.env
+        echo "UPLOAD_URL=${{ steps.create_release.outputs.url }}" >> release.env
         echo "TAG_NAME=${{ env.TAG_NAME }}" >> release.env
         echo "RELEASE_ID=${{ steps.create_release.outputs.id }}" >> release.env
     - name: Upload result
