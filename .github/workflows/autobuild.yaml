@@ -307,24 +307,19 @@ jobs:
         ${{ env.CLANGD_DIR }}/bin/clangd-index-server${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/bin/clangd-index-server-monitor${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/lib/clang
-    - name: Upload clangd asset
+    - name: Upload clangd asset and indexing tools
       shell: bash
       run: |
-        mv clangd.zip ${{ env.RELEASE_FILE_NAME }} && 
+        mv clangd.zip ${{ env.RELEASE_FILE_NAME }}
         gh release upload ${{ env.TAG_NAME }} ${{ env.RELEASE_FILE_NAME }}
+        
+        mv indexing-tools.zip ${{ env.INDEXING_TOOL_NAME }}
+        gh release upload ${{ env.TAG_NAME }} ${{ env.INDEXING_TOOL_NAME }}
       env:
         GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         GH_REPO: ${{ github.repository }}
         RELEASE_FILE_NAME: clangd-${{ matrix.config.name }}-${{ env.TAG_NAME }}.zip
-    - name: Upload indexing-tools asset
-      shell: bash
-      run: |
-        mv indexing-tools.zip ${{ env.RELEASE_FILE_NAME }} && 
-        gh release upload ${{ env.TAG_NAME }} ${{ env.RELEASE_FILE_NAME }}
-      env:
-        GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        GH_REPO: ${{ github.repository }}
-        RELEASE_FILE_NAME: clangd_indexing_tools-${{ matrix.config.name }}-${{ env.TAG_NAME }}.zip
+        INDEXING_TOOL_NAME: clangd_indexing_tools-${{ matrix.config.name }}-${{ env.TAG_NAME }}.zip
     - name: Check binary compatibility
       if: matrix.config.name == 'linux'
       run: .github/workflows/lib_compat_test.py --lib=GLIBC_2.18 "$CLANGD_DIR/bin/clangd"
