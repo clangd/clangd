@@ -310,7 +310,7 @@ jobs:
     - name: Upload clangd asset
       shell: bash
       run: |
-        mv clangd.zip ${{ env.RELEASE_FILE_NAME }}
+        mv clangd.zip ${{ env.RELEASE_FILE_NAME }} && 
         gh release upload ${{ env.TAG_NAME }} ${{ env.RELEASE_FILE_NAME }}
       env:
         GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -319,7 +319,7 @@ jobs:
     - name: Upload indexing-tools asset
       shell: bash
       run: |
-        mv indexing-tools.zip ${{ env.RELEASE_FILE_NAME }}
+        mv indexing-tools.zip ${{ env.RELEASE_FILE_NAME }} && 
         gh release upload ${{ env.TAG_NAME }} ${{ env.RELEASE_FILE_NAME }}
       env:
         GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
