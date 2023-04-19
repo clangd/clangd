@@ -170,15 +170,20 @@ jobs:
         - name: linux
           os: ubuntu-latest
           container: ubuntu:18.04
-          preinstall: >-
+          preinstall: |
             apt-get update &&
-            apt-get install -y ninja-build libz-dev libc-ares-dev wget clang-9
-            software-properties-common p7zip-full curl &&
+            apt-get install -y ninja-build libz-dev libc-ares-dev wget clang-9 software-properties-common p7zip-full curl &&
             add-apt-repository ppa:git-core/ppa &&
             wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - &&
             apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' &&
             apt-get update &&
             apt-get install -y git cmake
+
+            # Install github cli for uploading artifacts, this is only needed on linux CI because we use container for linux
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg &&
+            chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg &&
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null &&
+            apt update  && apt install gh -y
           cflags: -O3 -gline-tables-only -DNDEBUG -include $GITHUB_WORKSPACE/.github/workflows/lib_compat.h
           cmake: >-
             "-DCMAKE_C_COMPILER=clang-9"
