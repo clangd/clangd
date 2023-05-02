@@ -101,24 +101,21 @@ jobs:
     - name: Fetch environment variables
       uses: actions/download-artifact@v3
       with:
-        name:
-          env
+        name: env
     - name: Set environment variables
-      run: |
-        cat commit.env >> $GITHUB_ENV
-    - name: Create release
-      uses: softprops/action-gh-release@v1
-      id: create_release
+      run: cat commit.env >> $GITHUB_ENV
+    - name: Setup gh
+      uses: wusatosi/setup-gh@v1
       with:
         token: ${{ secrets.RELEASE_TOKEN }}
-        tag_name: ${{ env.TAG_NAME }}
-        name: ${{ env.RELEASE_NAME }}
+    - name: Create release
+      run: gh release create ${{ env.TAG_NAME }} -t ${{ env.RELEASE_NAME }} -n ${{ env.body }} --draft --prerelease
+      id: create_release
+      env:
         body: |
           ${{ env.RELEASE_DESCRIPTION }}
 
           Built from ${{ env.LLVM_REPO }}@${{ env.LLVM_COMMIT }}.
-        prerelease: true
-        draft: true
     - name: Preserve release info
       run: |
         echo "TAG_NAME=${{ env.TAG_NAME }}" >> release.env
@@ -197,13 +194,13 @@ jobs:
         ref: master
     - name: Install tools
       run: ${{ matrix.config.preinstall }}
-    # Visual Studio tools require a bunch of environment variables to be set.
-    # Run vcvars64.bat and re-export the current environment to the workflow.
-    # (It'd be nice to only export the variables that *changed*, oh well).
     - name: Setup gh
       uses: wusatosi/setup-gh@v1
       with:
         token: ${{ secrets.RELEASE_TOKEN }}
+    # Visual Studio tools require a bunch of environment variables to be set.
+    # Run vcvars64.bat and re-export the current environment to the workflow.
+    # (It'd be nice to only export the variables that *changed*, oh well).
     - name: Visual Studio environment
       if: matrix.config.name == 'windows'
       shell: powershell
@@ -331,13 +328,12 @@ jobs:
     - name: Fetch release info
       uses: actions/download-artifact@v3
       with:
-        name:
-          release
+        name: release
     - name: Update the env variables
-      run: >
-        cat release.env >> $GITHUB_ENV
+      run: cat release.env >> $GITHUB_ENV
+    - name: Setup gh
+      uses: wusatosi/setup-gh@v1
+      with:
+        token: ${{ secrets.RELEASE_TOKEN }}
     - name: Publish release
       run: gh release edit ${{ env.TAG_NAME }} --draft=false
-      env:
-        GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        GH_REPO: ${{ github.repository }}
