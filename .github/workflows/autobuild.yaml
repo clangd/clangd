@@ -203,7 +203,7 @@ jobs:
     # Run vcvars64.bat and re-export the current environment to the workflow.
     # (It'd be nice to only export the variables that *changed*, oh well).
     - name: Setup gh
-      uses: wusatosi/setup-gh@main
+      uses: wusatosi/setup-gh@v1
       with:
         token: ${{ secrets.RELEASE_TOKEN }}
     - name: Visual Studio environment
