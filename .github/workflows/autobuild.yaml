@@ -178,12 +178,6 @@ jobs:
             apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' &&
             apt-get update &&
             apt-get install -y git cmake
-
-            # Install github cli for uploading artifacts, this is only needed on linux CI because we use container for linux
-            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg &&
-            chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg &&
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null &&
-            apt update  && apt install gh -y
           cflags: -O3 -gline-tables-only -DNDEBUG -include $GITHUB_WORKSPACE/.github/workflows/lib_compat.h
           cmake: >-
             "-DCMAKE_C_COMPILER=clang-9"
@@ -208,6 +202,10 @@ jobs:
     # Visual Studio tools require a bunch of environment variables to be set.
     # Run vcvars64.bat and re-export the current environment to the workflow.
     # (It'd be nice to only export the variables that *changed*, oh well).
+    - name: Setup gh
+      uses: wusatosi/setup-gh@main
+      with:
+        token: ${{ secrets.RELEASE_TOKEN }}
     - name: Visual Studio environment
       if: matrix.config.name == 'windows'
       shell: powershell
@@ -321,8 +319,6 @@ jobs:
         mv indexing-tools.zip ${{ env.INDEXING_TOOL_NAME }}
         gh release upload ${{ env.TAG_NAME }} ${{ env.INDEXING_TOOL_NAME }}
       env:
-        GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        GH_REPO: ${{ github.repository }}
         RELEASE_FILE_NAME: clangd-${{ matrix.config.name }}-${{ env.TAG_NAME }}.zip
         INDEXING_TOOL_NAME: clangd_indexing_tools-${{ matrix.config.name }}-${{ env.TAG_NAME }}.zip
     - name: Check binary compatibility
