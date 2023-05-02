@@ -121,9 +121,7 @@ jobs:
         draft: true
     - name: Preserve release info
       run: |
-        echo "UPLOAD_URL=${{ steps.create_release.outputs.url }}" >> release.env
         echo "TAG_NAME=${{ env.TAG_NAME }}" >> release.env
-        echo "RELEASE_ID=${{ steps.create_release.outputs.id }}" >> release.env
     - name: Upload result
       uses: actions/upload-artifact@v3
       with:
