@@ -231,10 +231,6 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: env
-    - name: Fetch release info
-      uses: actions/download-artifact@v3
-      with:
-        name: release
     - name: Put release info into env
       run: cat commit.env >> $GITHUB_ENV
       shell: bash
