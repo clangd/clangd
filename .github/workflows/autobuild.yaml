@@ -116,14 +116,6 @@ jobs:
           ${{ env.RELEASE_DESCRIPTION }}
 
           Built from ${{ env.LLVM_REPO }}@${{ env.LLVM_COMMIT }}.
-    - name: Preserve release info
-      run: |
-        echo "TAG_NAME=${{ env.TAG_NAME }}" >> release.env
-    - name: Upload result
-      uses: actions/upload-artifact@v3
-      with:
-        name: release
-        path: release.env
   # Build clangd using CMake/Ninja.
   #
   # This step is a template that runs on each OS, build config varies slightly.
@@ -245,9 +237,7 @@ jobs:
       with:
         name: release
     - name: Put release info into env
-      run: |
-        cat commit.env >> $GITHUB_ENV
-        cat release.env >> $GITHUB_ENV
+      run: cat commit.env >> $GITHUB_ENV
       shell: bash
       # Use environment variables set above to create a directory. This needs
       # to be a separate step because they are not in the context yet when
@@ -325,12 +315,12 @@ jobs:
     needs: build
     if: always() && needs.build.result == 'success'
     steps:
-    - name: Fetch release info
+    - name: Fetch environment variables
       uses: actions/download-artifact@v3
       with:
-        name: release
-    - name: Update the env variables
-      run: cat release.env >> $GITHUB_ENV
+        name: env
+    - name: Set environment variables
+      run: cat commit.env >> $GITHUB_ENV
     - name: Setup gh
       uses: wusatosi/setup-gh@v1
       with:
