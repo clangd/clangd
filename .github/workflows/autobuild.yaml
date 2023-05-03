@@ -109,7 +109,7 @@ jobs:
       with:
         token: ${{ secrets.RELEASE_TOKEN }}
     - name: Create release
-      run: gh release create ${{ env.TAG_NAME }} -t ${{ env.RELEASE_NAME }} -n ${{ env.body }} --draft --prerelease
+      run: gh release create ${{ env.TAG_NAME }} -t "${{ env.RELEASE_NAME }}" -n "${{ env.body }}" --draft --prerelease
       env:
         body: |
           ${{ env.RELEASE_DESCRIPTION }}
