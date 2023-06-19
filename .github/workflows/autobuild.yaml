@@ -152,6 +152,7 @@ jobs:
             "-DCMAKE_CXX_COMPILER=cl"
             "-DLLVM_ENABLE_ZLIB=OFF"
             "-DLLVM_USE_CRT_RELEASE=MT"
+            "-DLLVM_ENABLE_PDB=ON"
           grpc_cmake: >-
             "-DgRPC_MSVC_STATIC_RUNTIME=ON"
           binary_extension: ".exe"
@@ -301,6 +302,12 @@ jobs:
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
         ${{ env.CLANGD_DIR }}/bin/clangd${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/lib/clang
+    - name: Archive clangd PDB symbols
+      if: matrix.config.name == 'windows'
+      run: >
+        7z a clangd-pdb.zip
+        ${{ env.CLANGD_DIR }}/LICENSE.TXT
+        ${{ env.CLANGD_DIR }}/bin/clangd.pdb
     - name: Archive indexing-tools
       run: >
         7z a indexing-tools.zip
@@ -317,6 +324,16 @@ jobs:
         upload_url: ${{ env.UPLOAD_URL }}
         asset_name: clangd-${{ matrix.config.name }}-${{ env.TAG_NAME }}.zip
         asset_path: clangd.zip
+        asset_content_type: application/zip
+    - name: Upload clangd PDB asset
+      if: matrix.config.name == 'windows'
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      with:
+        upload_url: ${{ env.UPLOAD_URL }}
+        asset_name: clangd-${{ matrix.config.name }}-${{ env.TAG_NAME }}-debug-symbol.zip
+        asset_path: clangd-pdb.zip
         asset_content_type: application/zip
     - name: Upload indexing-tools asset
       uses: actions/upload-release-asset@v1.0.1
