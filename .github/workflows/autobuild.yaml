@@ -295,6 +295,9 @@ jobs:
       run: >
         cp ${{ env.CLANGD_DIR }}/projects/openmp/runtime/src/omp{,-tools}.h ${{ env.CLANGD_DIR }}/lib/clang/*/include
         || true # Don't let the non-existing omp headers block the release.
+    - name: Strip clangd
+      run: >
+        strip --strip-all ${{ env.CLANGD_DIR }}/bin/clangd${{ matrix.config.binary_extension }}
     - name: Archive clangd
       run: >
         7z a clangd.zip
