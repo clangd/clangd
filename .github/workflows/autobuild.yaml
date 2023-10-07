@@ -153,6 +153,7 @@ jobs:
             "-DLLVM_ENABLE_ZLIB=OFF"
             "-DLLVM_USE_CRT_RELEASE=MT"
             "-DLLVM_ENABLE_PDB=ON"
+            "-DLLVM_PARALLEL_LINK_JOBS=1"
           grpc_cmake: >-
             "-DgRPC_MSVC_STATIC_RUNTIME=ON"
           binary_extension: ".exe"
