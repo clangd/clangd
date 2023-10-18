@@ -151,7 +151,7 @@ jobs:
             "-DCMAKE_C_COMPILER=cl"
             "-DCMAKE_CXX_COMPILER=cl"
             "-DLLVM_ENABLE_ZLIB=OFF"
-            "-DLLVM_USE_CRT_RELEASE=MT"
+            "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"
           grpc_cmake: >-
             "-DgRPC_MSVC_STATIC_RUNTIME=ON"
           binary_extension: ".exe"
