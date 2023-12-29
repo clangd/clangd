@@ -7,8 +7,6 @@
 name: Build release binaries
 on:
   # Run weekly on sunday at 21:37 UTC (arbitrary)
-  schedule:
-  - cron: '37 21 * * SUN'
   workflow_dispatch:
     inputs:
       commit:
@@ -192,6 +190,11 @@ jobs:
           # libraries. All other gRPC dependencies can be built from sources.
           grpc_cmake: >-
             "-DgRPC_CARES_PROVIDER=package"
+        - name: linux-aarch64
+          os: ubuntu-latest
+          container: ubuntu:22.04
+          preinstall: >-
+
     runs-on: ${{ matrix.config.os }}
     container: ${{ matrix.config.container }}
     steps:
