@@ -6,6 +6,7 @@
 # expire. A token `secrets.RELEASE_TOKEN` must exist with public_repo scope.
 name: Build release binaries
 on:
+  push:
   # Run weekly on sunday at 21:37 UTC (arbitrary)
   workflow_dispatch:
     inputs:
