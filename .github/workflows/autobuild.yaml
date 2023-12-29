@@ -8,24 +8,6 @@ name: Build release binaries
 on:
   push:
   # Run weekly on sunday at 21:37 UTC (arbitrary)
-  workflow_dispatch:
-    inputs:
-      commit:
-        description: 'Commit to build from'
-        required: true
-      repo:
-        description: 'Repository to build from'
-        required: true
-        default: 'llvm/llvm-project'
-      release_name:
-        description: 'Release name'
-        required: true
-      tag:
-        description: 'Tag name'
-        required: true
-      description:
-        description: 'Release description'
-        required: true
 jobs:
   schedule_environment:
     name: Create default build environment
