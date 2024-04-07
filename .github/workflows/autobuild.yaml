@@ -290,6 +290,12 @@ jobs:
       run: >
         ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer clangd-index-server
         clangd-index-server-monitor
+    # Install targets so that RUNPATHs get properly substituted.
+    # FIXME: We don't have other targets besides clangd. We probably want them too.
+    - name: Install
+      run: >
+        cmake --install ${{ env.CLANGD_DIR }} --prefix ${{ env.CLANGD_DIR }}
+        "--component=clangd"
     - name: Install OpenMP headers
       shell: bash
       run: >
