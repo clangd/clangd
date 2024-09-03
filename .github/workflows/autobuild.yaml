@@ -101,7 +101,7 @@ jobs:
     if: always() && (needs.schedule_environment.result == 'success' || needs.workflow_dispatch_environment.result == 'success')
     steps:
     - name: Fetch environment variables
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4.1.7
       with:
         name:
           env
@@ -241,12 +241,12 @@ jobs:
 
         ninja -C grpc-build install
     - name: Fetch target commit
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4.1.7
       with:
         name:
           env
     - name: Fetch release info
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4.1.7
       with:
         name:
           release
@@ -339,7 +339,7 @@ jobs:
     if: always() && needs.build.result == 'success'
     steps:
     - name: Fetch release info
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4.1.7
       with:
         name:
           release
