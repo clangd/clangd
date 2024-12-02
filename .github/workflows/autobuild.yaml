@@ -5,6 +5,8 @@
 # Because the build takes more than an hour, our GITHUB_TOKEN credentials may
 # expire. A token `secrets.RELEASE_TOKEN` must exist with public_repo scope.
 name: Build release binaries
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 on:
   # Run weekly on sunday at 21:37 UTC (arbitrary)
   schedule:
@@ -68,7 +70,7 @@ jobs:
       run: >
         echo "RELEASE_DESCRIPTION=Unstable snapshot of clangd on ${{ env.RELEASE_DATE }}." >> commit.env
     - name: Upload result
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: env
         path: commit.env
@@ -85,7 +87,7 @@ jobs:
         echo "RELEASE_NAME=${{ github.event.inputs.release_name }}" >> commit.env
         echo "RELEASE_DESCRIPTION=${{ github.event.inputs.description }}" >> commit.env
     - name: Upload result
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: env
         path: commit.env
@@ -99,9 +101,11 @@ jobs:
     if: always() && (needs.schedule_environment.result == 'success' || needs.workflow_dispatch_environment.result == 'success')
     steps:
     - name: Fetch environment variables
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v3
       with:
         name:
+          env
+        path:
           env
     - name: Set environment variables
       run: |
@@ -126,7 +130,7 @@ jobs:
         echo "TAG_NAME=${{ env.TAG_NAME }}" >> release.env
         echo "RELEASE_ID=${{ steps.create_release.outputs.id }}" >> release.env
     - name: Upload result
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: release
         path: release.env
@@ -151,14 +155,14 @@ jobs:
             "-DCMAKE_C_COMPILER=cl"
             "-DCMAKE_CXX_COMPILER=cl"
             "-DLLVM_ENABLE_ZLIB=OFF"
-            "-DLLVM_USE_CRT_RELEASE=MT"
+            "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"
             "-DLLVM_ENABLE_PDB=ON"
             "-DLLVM_PARALLEL_LINK_JOBS=1"
           grpc_cmake: >-
             "-DgRPC_MSVC_STATIC_RUNTIME=ON"
           binary_extension: ".exe"
         - name: mac
-          os: macos-latest
+          os: macos-12
           preinstall: brew install ninja zlib p7zip
           cflags: -O3 -gline-tables-only -DNDEBUG
           cmake: >-
@@ -181,7 +185,7 @@ jobs:
             wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - &&
             apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' &&
             apt-get update &&
-            apt-get install -y git cmake
+            apt-get install -y git cmake python3.8 python3.8-dev
           cflags: -O3 -gline-tables-only -DNDEBUG -include $GITHUB_WORKSPACE/.github/workflows/lib_compat.h
           cmake: >-
             "-DCMAKE_C_COMPILER=clang-9"
@@ -241,14 +245,18 @@ jobs:
 
         ninja -C grpc-build install
     - name: Fetch target commit
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v3
       with:
         name:
           env
+        path:
+          env
     - name: Fetch release info
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v3
       with:
         name:
+          release
+        path:
           release
     - name: Put release info into env
       run: |
@@ -355,9 +363,11 @@ jobs:
     if: always() && needs.build.result == 'success'
     steps:
     - name: Fetch release info
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v3
       with:
         name:
+          release
+        path:
           release
     - name: Update the env variables
       run: >
