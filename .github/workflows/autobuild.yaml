@@ -70,7 +70,7 @@ jobs:
       run: >
         echo "RELEASE_DESCRIPTION=Unstable snapshot of clangd on ${{ env.RELEASE_DATE }}." >> commit.env
     - name: Upload result
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: env
         path: commit.env
@@ -87,7 +87,7 @@ jobs:
         echo "RELEASE_NAME=${{ github.event.inputs.release_name }}" >> commit.env
         echo "RELEASE_DESCRIPTION=${{ github.event.inputs.description }}" >> commit.env
     - name: Upload result
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: env
         path: commit.env
@@ -101,7 +101,7 @@ jobs:
     if: always() && (needs.schedule_environment.result == 'success' || needs.workflow_dispatch_environment.result == 'success')
     steps:
     - name: Fetch environment variables
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name:
           env
@@ -130,7 +130,7 @@ jobs:
         echo "TAG_NAME=${{ env.TAG_NAME }}" >> release.env
         echo "RELEASE_ID=${{ steps.create_release.outputs.id }}" >> release.env
     - name: Upload result
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: release
         path: release.env
@@ -245,14 +245,14 @@ jobs:
 
         ninja -C grpc-build install
     - name: Fetch target commit
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name:
           env
         path:
           env
     - name: Fetch release info
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name:
           release
@@ -363,7 +363,7 @@ jobs:
     if: always() && needs.build.result == 'success'
     steps:
     - name: Fetch release info
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name:
           release
