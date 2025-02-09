@@ -176,7 +176,7 @@ jobs:
             "-DOPENSSL_NO_ASM=ON"
         - name: linux
           os: ubuntu-latest
-          container: ubuntu:18.04
+          container: ubuntu:20.04
           preinstall: >-
             apt-get update &&
             apt-get install -y ninja-build libz-dev libc-ares-dev wget clang-9
