@@ -179,7 +179,7 @@ jobs:
           container: ubuntu:20.04
           preinstall: >-
             apt-get update &&
-            apt-get install -y ninja-build libz-dev libc-ares-dev wget clang-9
+            apt-get install -y ninja-build libz-dev libc-ares-dev wget clang-10
             software-properties-common p7zip-full curl &&
             add-apt-repository ppa:git-core/ppa &&
             wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - &&
@@ -188,8 +188,8 @@ jobs:
             apt-get install -y git cmake python3.8 python3.8-dev
           cflags: -O3 -gline-tables-only -DNDEBUG -include $GITHUB_WORKSPACE/.github/workflows/lib_compat.h
           cmake: >-
-            "-DCMAKE_C_COMPILER=clang-9"
-            "-DCMAKE_CXX_COMPILER=clang++-9"
+            "-DCMAKE_C_COMPILER=clang-10"
+            "-DCMAKE_CXX_COMPILER=clang++-10"
             "-DCMAKE_EXE_LINKER_FLAGS_RELEASE=-static-libgcc -Wl,--compress-debug-sections=zlib"
             "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
