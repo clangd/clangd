@@ -46,13 +46,6 @@ jobs:
           $releaseUrl = curl -sL ${{ steps.params.outputs.assets_url }} | ConvertFrom-Json
             | Where-Object -Property name -like "clangd-windows-*.zip"
             | Select-Object -ExpandProperty browser_download_url
-          $version = "${{ steps.params.outputs.version }}"
-          $installerPath = "winget-pkgs/manifests/l/LLVM/clangd/$version/LLVM.clangd.installer.yaml"
           
           ./komac sync-fork
-          ./komac update -v $version -u $releaseUrl --dry-run -o winget-pkgs LLVM.clangd
-          
-          (Get-Content $installerPath) -replace '^(\s*-\s+RelativeFilePath:\s+).*$', ('${1}' + "clangd_$version/bin/clangd.exe")
-            | Set-Content $installerPath
-          
-          ./komac submit -y winget-pkgs
+          ./komac update -v ${{ steps.params.outputs.version }} -u $releaseUrl -s LLVM.clangd
