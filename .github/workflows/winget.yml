@@ -52,7 +52,7 @@ jobs:
           ./komac sync-fork
           ./komac update -v $version -u $releaseUrl --dry-run -o winget-pkgs LLVM.clangd
           
-          (Get-Content $installerPath) -replace '^(\s*-\s+RelativeFilePath:\s+).*$', ('${1}' + "clang_$version/bin/clangd.exe")
+          (Get-Content $installerPath) -replace '^(\s*-\s+RelativeFilePath:\s+).*$', ('${1}' + "clangd_$version/bin/clangd.exe")
             | Set-Content $installerPath
           
           ./komac submit -y winget-pkgs
