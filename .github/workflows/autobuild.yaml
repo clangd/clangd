@@ -192,7 +192,7 @@ jobs:
           grpc_cmake: >-
             "-DOPENSSL_NO_ASM=ON"
         - name: mac-arm64
-          runner: macos-13
+          runner: macos-latest
           arch: aarch64
           preinstall: brew install ninja zlib p7zip
           cflags: -O3 -gline-tables-only -DNDEBUG
