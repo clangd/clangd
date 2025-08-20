@@ -177,7 +177,6 @@ jobs:
             "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"
             "-DLLVM_ENABLE_PDB=ON"
             "-DLLVM_PARALLEL_LINK_JOBS=1"
-            "-DCMAKE_GENERATOR_PLATFORM=ARM64"
           grpc_cmake: >-
             "-DgRPC_MSVC_STATIC_RUNTIME=ON"
           binary_extension: ".exe"
