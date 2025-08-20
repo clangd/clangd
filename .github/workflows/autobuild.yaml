@@ -147,7 +147,6 @@ jobs:
       matrix:
         config:
         - name: windows-x64
-          os: windows-2022
           runner: windows-2022
           arch: x86_64
           preinstall: choco install ninja nasm
@@ -164,11 +163,10 @@ jobs:
             "-DgRPC_MSVC_STATIC_RUNTIME=ON"
           binary_extension: ".exe"
         - name: windows-arm64
-          os: windows-2022
-          runner: windows-2022
+          runner: windows-11-arm
           arch: aarch64
           preinstall: choco install ninja nasm
-          vcvars: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsarm64.bat
+          vcvars: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat
           cflags: /O2 /DNDEBUG
           cmake: >-
             "-DCMAKE_C_COMPILER=cl"
@@ -181,7 +179,6 @@ jobs:
             "-DgRPC_MSVC_STATIC_RUNTIME=ON"
           binary_extension: ".exe"
         - name: mac-x64
-          os: macos-13
           runner: macos-13
           arch: x86_64
           preinstall: brew install ninja zlib p7zip
@@ -195,7 +192,6 @@ jobs:
           grpc_cmake: >-
             "-DOPENSSL_NO_ASM=ON"
         - name: mac-arm64
-          os: macos-13
           runner: macos-13
           arch: aarch64
           preinstall: brew install ninja zlib p7zip
@@ -209,7 +205,6 @@ jobs:
           grpc_cmake: >-
             "-DOPENSSL_NO_ASM=ON"
         - name: linux-x64
-          os: ubuntu-latest
           runner: ubuntu-latest
           arch: x86_64
           container: ubuntu:20.04
@@ -233,7 +228,6 @@ jobs:
           grpc_cmake: >-
             "-DgRPC_CARES_PROVIDER=package"
         - name: linux-arm64
-          os: ubuntu-latest
           runner: ubuntu-24.04-arm64
           arch: aarch64
           container: ubuntu:20.04
