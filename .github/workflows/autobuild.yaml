@@ -270,7 +270,7 @@ jobs:
     # Run vcvars64.bat and re-export the current environment to the workflow.
     # (It'd be nice to only export the variables that *changed*, oh well).
     - name: Visual Studio environment
-      if: mstartsWith(matrix.config.name, 'windows')
+      if: startsWith(matrix.config.name, 'windows')
       shell: powershell
       run: |
         cmd /c "`"${{ matrix.config.vcvars }}`">NUL && set" | Foreach-Object {
