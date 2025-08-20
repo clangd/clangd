@@ -271,7 +271,7 @@ jobs:
     # Run vcvars64.bat and re-export the current environment to the workflow.
     # (It'd be nice to only export the variables that *changed*, oh well).
     - name: Visual Studio environment
-      if: matrix.config.name == 'windows'
+      if: mstartsWith(matrix.config.name, 'windows')
       shell: powershell
       run: |
         cmd /c "`"${{ matrix.config.vcvars }}`">NUL && set" | Foreach-Object {
@@ -373,7 +373,7 @@ jobs:
         ${{ env.CLANGD_DIR }}/bin/clangd${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/lib/clang
     - name: Archive clangd PDB symbols
-      if: matrix.config.name == 'windows'
+      if: startsWith(matrix.config.name, 'windows')
       run: >
         7z a clangd-pdb.7z -t7z -m0=LZMA2
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
@@ -396,7 +396,7 @@ jobs:
         asset_path: clangd.zip
         asset_content_type: application/zip
     - name: Upload clangd PDB asset
-      if: matrix.config.name == 'windows'
+      if: startsWith(matrix.config.name, 'windows')
       uses: actions/upload-release-asset@v1.0.1
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -415,7 +415,7 @@ jobs:
         asset_path: indexing-tools.zip
         asset_content_type: application/zip
     - name: Check binary compatibility
-      if: matrix.config.name == 'linux'
+      if: startsWith(matrix.config.name, 'linux')
       run: .github/workflows/lib_compat_test.py --lib=GLIBC_2.18 "$CLANGD_DIR/bin/clangd"
   # Create the release, and upload the artifacts to it.
   finalize:
