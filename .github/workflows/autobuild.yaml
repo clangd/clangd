@@ -216,6 +216,8 @@ jobs:
             "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
             "-DCMAKE_PROJECT_INCLUDE=$GITHUB_WORKSPACE/.github/workflows/linux-static-deps.cmake"
+          # Using c-ares as a module prevents dynamic linking of unneeded
+          # libraries. All other gRPC dependencies can be built from sources.
           grpc_cmake: >-
             "-DgRPC_CARES_PROVIDER=package"
         - name: linux-arm64
@@ -238,8 +240,6 @@ jobs:
             "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
             "-DCMAKE_PROJECT_INCLUDE=$GITHUB_WORKSPACE/.github/workflows/linux-static-deps.cmake"
-          # Using c-ares as a module prevents dynamic linking of unneeded
-          # libraries. All other gRPC dependencies can be built from sources.
           grpc_cmake: >-
             "-DgRPC_CARES_PROVIDER=package"
     runs-on: ${{ matrix.config.runner }}
