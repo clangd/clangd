@@ -282,6 +282,7 @@ jobs:
 
         cmake -G Ninja -S grpc -B grpc-build
         "-DgRPC_INSTALL=ON"
+        "-DgRPC_BUILD_CSHARP_EXT=OFF"
         "-DCMAKE_INSTALL_PREFIX=$HOME/grpc-installation"
         "-DCMAKE_BUILD_TYPE=Release"
         "-DCMAKE_C_FLAGS_RELEASE=${{ matrix.config.cflags }}"
