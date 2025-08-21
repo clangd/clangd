@@ -222,7 +222,7 @@ jobs:
           grpc_cmake: >-
             "-DgRPC_CARES_PROVIDER=package"
         - name: linux-arm64
-          runner: ubuntu-24.04-arm64
+          runner: ubuntu-24.04-arm
           container: ubuntu:20.04
           preinstall: >-
             apt-get update &&
