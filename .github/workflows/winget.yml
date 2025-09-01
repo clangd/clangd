@@ -52,4 +52,4 @@ jobs:
             | Select-Object -ExpandProperty browser_download_url
           
           ./komac sync-fork
-          ./komac update -v ${{ steps.params.outputs.version }} -u $releaseUrl -s LLVM.clangd
+          ./komac update LLVM.clangd -v ${{ steps.params.outputs.version }} -u $releaseUrl -s
