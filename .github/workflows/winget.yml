@@ -2,7 +2,7 @@ name: Publish on Windows Package Manager
 
 on:
   release:
-    types: [published]
+    types: [released]
   workflow_dispatch:
     inputs:
       tag_name:
@@ -13,7 +13,6 @@ jobs:
   publish-winget:
     name: Publish
     runs-on: windows-latest
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'release' && !github.event.release.prerelease
     steps:
       - name: Configure parameters
         id: params
