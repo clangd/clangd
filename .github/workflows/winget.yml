@@ -1,0 +1,54 @@
+name: Publish on Windows Package Manager
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Release tag (version)
+        required: true
+
+jobs:
+  publish-winget:
+    name: Publish
+    runs-on: windows-latest
+    steps:
+      - name: Configure parameters
+        id: params
+        run: |
+          if ("${{ github.event_name }}" -eq "release") {
+            # Sometimes assets aren't immediately available, so we wait a bit for the first run
+            ${{ github.run_attempt == 1 && 'Start-Sleep -Seconds 300' || '' }}
+            
+            echo "assets_url=${{ github.event.release.assets_url }}" >> $env:GITHUB_OUTPUT
+            echo "version=${{ github.event.release.tag_name }}" >> $env:GITHUB_OUTPUT
+          } else {
+            $releaseUrl = "$env:GITHUB_API_URL/repos/clangd/clangd/releases/tags/${{ github.event.inputs.tag_name }}"
+            $assetsUrl = curl -sL $releaseUrl | ConvertFrom-Json | Select-Object -ExpandProperty assets_url
+            
+            echo "assets_url=$assetsUrl" >> $env:GITHUB_OUTPUT
+            echo "version=${{ github.event.inputs.tag_name }}" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Set up Komac
+        run: |
+          $releaseUrl = "$env:GITHUB_API_URL/repos/russellbanks/Komac/releases/latest"
+          $downloadUrl = curl -sL $releaseUrl | ConvertFrom-Json
+            | Select-Object -ExpandProperty assets
+            | Where-Object -Property name -like "komac-*-x86_64-pc-windows-msvc.exe"
+            | Select-Object -ExpandProperty browser_download_url
+            | Select-Object -First 1
+          curl -sL $downloadUrl -o komac.exe
+          ./komac --version
+
+      - name: Submit package
+        env:
+          GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          $releaseUrl = curl -sL ${{ steps.params.outputs.assets_url }} | ConvertFrom-Json
+            | Where-Object -Property name -like "clangd-windows-*.zip"
+            | Select-Object -ExpandProperty browser_download_url
+          
+          ./komac sync-fork
+          ./komac update LLVM.clangd -v ${{ steps.params.outputs.version }} -u $releaseUrl -s
