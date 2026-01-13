@@ -158,6 +158,7 @@ jobs:
             "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"
             "-DLLVM_ENABLE_PDB=ON"
             "-DLLVM_PARALLEL_LINK_JOBS=1"
+          grpc_version: v1.36.3
           grpc_cmake: >-
             "-DgRPC_MSVC_STATIC_RUNTIME=ON"
           binary_extension: ".exe"
@@ -177,26 +178,22 @@ jobs:
         #   grpc_cmake: >-
         #     "-DgRPC_MSVC_STATIC_RUNTIME=ON"
         #   binary_extension: ".exe"
-        - name: mac-x64
-          runner: macos-13
+        - name: mac
+          runner: macos-14
           preinstall: brew install ninja zlib p7zip
           cflags: -O3 -gline-tables-only -DNDEBUG
           cmake: >-
             "-DCMAKE_C_COMPILER=clang"
             "-DCMAKE_CXX_COMPILER=clang++"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
-            "-DCMAKE_OSX_ARCHITECTURES=x86_64"
+            "-DCMAKE_OSX_ARCHITECTURES=x86_64;arm64"
             "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13"
-        - name: mac-arm64
-          runner: macos-latest
-          preinstall: brew install ninja zlib p7zip
-          cflags: -O3 -gline-tables-only -DNDEBUG
-          cmake: >-
-            "-DCMAKE_C_COMPILER=clang"
-            "-DCMAKE_CXX_COMPILER=clang++"
-            "-DLLVM_ENABLE_ZLIB=FORCE_ON"
-            "-DCMAKE_OSX_ARCHITECTURES=arm64"
-            "-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0"
+            "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+            "-Dabsl_DIR=$HOME/grpc-installation/lib/cmake/absl"
+          grpc_version: v1.51.3
+          # BoringSSL doesn't support universal binaries when building with ASM.
+          grpc_cmake: >-
+            "-DOPENSSL_NO_ASM=ON"
         - name: linux-x64
           runner: ubuntu-latest
           container: ubuntu:20.04
@@ -217,6 +214,7 @@ jobs:
             "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
             "-DCMAKE_PROJECT_INCLUDE=$GITHUB_WORKSPACE/.github/workflows/linux-static-deps.cmake"
+          grpc_version: v1.36.3
           # Using c-ares as a module prevents dynamic linking of unneeded
           # libraries. All other gRPC dependencies can be built from sources.
           grpc_cmake: >-
@@ -241,6 +239,7 @@ jobs:
             "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
             "-DLLVM_ENABLE_ZLIB=FORCE_ON"
             "-DCMAKE_PROJECT_INCLUDE=$GITHUB_WORKSPACE/.github/workflows/linux-static-deps.cmake"
+          grpc_version: v1.36.3
           grpc_cmake: >-
             "-DgRPC_CARES_PROVIDER=package"
     runs-on: ${{ matrix.config.runner }}
@@ -272,7 +271,7 @@ jobs:
         # We use the same version of gRPC for LLVM's clangd-ubuntu-tsan
         # buildbot.
         # https://github.com/llvm/llvm-zorg/blob/main/buildbot/google/docker/buildbot-clangd-ubuntu-clang/Dockerfile
-        ref: v1.36.3
+        ref: ${{ matrix.config.grpc_version }} 
         submodules: recursive
     - name: Build gRPC
       run: >
