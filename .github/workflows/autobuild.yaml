@@ -146,8 +146,8 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - name: windows
-          os: windows-2022
+        - name: windows-x64
+          runner: windows-2022
           preinstall: choco install ninja nasm
           vcvars: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat
           cflags: /O2 /DNDEBUG
@@ -162,8 +162,24 @@ jobs:
           grpc_cmake: >-
             "-DgRPC_MSVC_STATIC_RUNTIME=ON"
           binary_extension: ".exe"
+        # Can be uncommented once gRPC is upgraded past v1.54.
+        # - name: windows-arm64
+        #   runner: windows-11-arm
+        #   preinstall: choco install ninja nasm
+        #   vcvars: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat
+        #   cflags: /O2 /DNDEBUG
+        #   cmake: >-
+        #     "-DCMAKE_C_COMPILER=cl"
+        #     "-DCMAKE_CXX_COMPILER=cl"
+        #     "-DLLVM_ENABLE_ZLIB=OFF"
+        #     "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"
+        #     "-DLLVM_ENABLE_PDB=ON"
+        #     "-DLLVM_PARALLEL_LINK_JOBS=1"
+        #   grpc_cmake: >-
+        #     "-DgRPC_MSVC_STATIC_RUNTIME=ON"
+        #   binary_extension: ".exe"
         - name: mac
-          os: macos-14
+          runner: macos-14
           preinstall: brew install ninja zlib p7zip
           cflags: -O3 -gline-tables-only -DNDEBUG
           cmake: >-
@@ -178,8 +194,8 @@ jobs:
           # BoringSSL doesn't support universal binaries when building with ASM.
           grpc_cmake: >-
             "-DOPENSSL_NO_ASM=ON"
-        - name: linux
-          os: ubuntu-latest
+        - name: linux-x64
+          runner: ubuntu-latest
           container: ubuntu:20.04
           preinstall: >-
             apt-get update &&
@@ -203,7 +219,30 @@ jobs:
           # libraries. All other gRPC dependencies can be built from sources.
           grpc_cmake: >-
             "-DgRPC_CARES_PROVIDER=package"
-    runs-on: ${{ matrix.config.os }}
+        - name: linux-arm64
+          runner: ubuntu-24.04-arm
+          container: ubuntu:24.04
+          preinstall: >-
+            apt-get update &&
+            apt-get install -y ninja-build libz-dev libc-ares-dev wget clang-10
+            software-properties-common p7zip-full curl &&
+            add-apt-repository ppa:git-core/ppa &&
+            wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - &&
+            apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' &&
+            apt-get update &&
+            apt-get install -y git cmake python3.8 python3.8-dev
+          cflags: -O3 -gline-tables-only -DNDEBUG -include $GITHUB_WORKSPACE/.github/workflows/lib_compat.h
+          cmake: >-
+            "-DCMAKE_C_COMPILER=clang-10"
+            "-DCMAKE_CXX_COMPILER=clang++-10"
+            "-DCMAKE_EXE_LINKER_FLAGS_RELEASE=-static-libgcc -Wl,--compress-debug-sections=zlib"
+            "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
+            "-DLLVM_ENABLE_ZLIB=FORCE_ON"
+            "-DCMAKE_PROJECT_INCLUDE=$GITHUB_WORKSPACE/.github/workflows/linux-static-deps.cmake"
+          grpc_version: v1.36.3
+          grpc_cmake: >-
+            "-DgRPC_CARES_PROVIDER=package"
+    runs-on: ${{ matrix.config.runner }}
     container: ${{ matrix.config.container }}
     steps:
     - name: Clone scripts
@@ -215,7 +254,7 @@ jobs:
     # Run vcvars64.bat and re-export the current environment to the workflow.
     # (It'd be nice to only export the variables that *changed*, oh well).
     - name: Visual Studio environment
-      if: matrix.config.name == 'windows'
+      if: startsWith(matrix.config.name, 'windows')
       shell: powershell
       run: |
         cmd /c "`"${{ matrix.config.vcvars }}`">NUL && set" | Foreach-Object {
@@ -242,6 +281,7 @@ jobs:
 
         cmake -G Ninja -S grpc -B grpc-build
         "-DgRPC_INSTALL=ON"
+        "-DgRPC_BUILD_CSHARP_EXT=OFF"
         "-DCMAKE_INSTALL_PREFIX=$HOME/grpc-installation"
         "-DCMAKE_BUILD_TYPE=Release"
         "-DCMAKE_C_FLAGS_RELEASE=${{ matrix.config.cflags }}"
@@ -318,7 +358,7 @@ jobs:
         ${{ env.CLANGD_DIR }}/bin/clangd${{ matrix.config.binary_extension }}
         ${{ env.CLANGD_DIR }}/lib/clang
     - name: Archive clangd PDB symbols
-      if: matrix.config.name == 'windows'
+      if: startsWith(matrix.config.name, 'windows')
       run: >
         7z a clangd-pdb.7z -t7z -m0=LZMA2
         ${{ env.CLANGD_DIR }}/LICENSE.TXT
@@ -341,7 +381,7 @@ jobs:
         asset_path: clangd.zip
         asset_content_type: application/zip
     - name: Upload clangd PDB asset
-      if: matrix.config.name == 'windows'
+      if: startsWith(matrix.config.name, 'windows')
       uses: actions/upload-release-asset@v1.0.1
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -360,7 +400,7 @@ jobs:
         asset_path: indexing-tools.zip
         asset_content_type: application/zip
     - name: Check binary compatibility
-      if: matrix.config.name == 'linux'
+      if: startsWith(matrix.config.name, 'linux')
       run: .github/workflows/lib_compat_test.py --lib=GLIBC_2.18 "$CLANGD_DIR/bin/clangd"
   # Create the release, and upload the artifacts to it.
   finalize:
