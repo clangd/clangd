@@ -305,12 +305,7 @@ jobs:
     - name: Ninja
       run: >
         ninja -C ${{ env.CLANGD_DIR }} clangd clangd-indexer clangd-index-server
-        clangd-index-server-monitor
-    - name: Install OpenMP headers
-      shell: bash
-      run: >
-        cp ${{ env.CLANGD_DIR }}/projects/openmp/runtime/src/omp{,-tools}.h ${{ env.CLANGD_DIR }}/lib/clang/*/include
-        || true # Don't let the non-existing omp headers block the release.
+        clangd-index-server-monitor runtimes
     - name: Archive clangd
       run: >
         7z a clangd.zip
