@@ -289,7 +289,7 @@ jobs:
 
         cmake -G Ninja -S llvm-project/llvm -B ${{ env.CLANGD_DIR }}
         "-DLLVM_ENABLE_PROJECTS=clang;clang-tools-extra"
-        "-DLLVM_ENABLE_RUNTIMES=openmp"
+        "-DLLVM_ENABLE_RUNTIMES=compiler-rt;openmp"
         "-DLLVM_ENABLE_ASSERTIONS=OFF"
         "-DLLVM_ENABLE_BACKTRACES=ON"
         "-DLLVM_ENABLE_TERMINFO=OFF"
