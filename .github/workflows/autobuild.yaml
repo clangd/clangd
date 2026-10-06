@@ -297,6 +297,9 @@ jobs:
         "-DCMAKE_C_FLAGS_RELEASE=${{ matrix.config.cflags }}"
         "-DCMAKE_CXX_FLAGS_RELEASE=${{ matrix.config.cflags }}"
         "-DCLANGD_ENABLE_REMOTE=ON"
+        # The OMPD GDB plugin is a shared module that links LLVMSupport, and
+        # thus the non-PIC system libz.a we force elsewhere. We don't ship it.
+        "-DLIBOMP_OMPD_GDB_SUPPORT=OFF"
         "-DLLVM_ENABLE_ZSTD=OFF"
         "-DGRPC_INSTALL_PATH=$HOME/grpc-installation"
         ${{ matrix.config.cmake }}
